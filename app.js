@@ -475,6 +475,7 @@ function draw() {
       const isHubPinned = state.pinnedNodeIds.has(hubNode.id);
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', 'hub');
       circle.setAttribute('cx', String(hubNode.x));
       circle.setAttribute('cy', String(hubNode.y));
       circle.setAttribute('r', '4');
@@ -917,14 +918,19 @@ function adjustZoom(factor, clientX = null, clientY = null) {
 function updateCanvasBackground() {
   if (state.canvasBg === 'white') {
     canvas.style.backgroundColor = '#ffffff';
+    inputCanvasBgCustom.value = '#ffffff';
   } else if (state.canvasBg === 'light-grey') {
     canvas.style.backgroundColor = '#f8f9fa';
+    inputCanvasBgCustom.value = '#f8f9fa';
   } else if (state.canvasBg === 'dark-slate') {
     canvas.style.backgroundColor = '#1a1e24';
+    inputCanvasBgCustom.value = '#1a1e24';
   } else if (state.canvasBg === 'custom') {
     canvas.style.backgroundColor = state.canvasBgCustom || '#ffffff';
+    inputCanvasBgCustom.value = state.canvasBgCustom || '#ffffff';
   } else {
     canvas.style.backgroundColor = 'transparent';
+    inputCanvasBgCustom.value = '#ffffff';
   }
 }
 
