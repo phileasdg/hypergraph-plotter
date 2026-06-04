@@ -6,6 +6,7 @@ const state = {
   vertices: [],
   hyperedges: [],
   selectedVertexIds: new Set(),
+  editingEdgeId: null, // Track which hyperedge is currently being edited
   
   // Canvas Transform
   pan: { x: 0, y: 0 },
@@ -93,8 +94,6 @@ const btnZoomIn = document.getElementById('btn-zoom-in');
 const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomFit = document.getElementById('btn-zoom-fit');
 
-const inputVertexLabel = document.getElementById('input-vertex-label');
-const btnAddVertex = document.getElementById('btn-add-vertex');
 const inputEdgeVertices = document.getElementById('input-edge-vertices');
 const btnAddEdge = document.getElementById('btn-add-edge');
 const hyperedgesListContainer = document.getElementById('hyperedges-list-container');
@@ -493,19 +492,41 @@ function updateHyperedgesList() {
     item.className = 'list-item';
     
     const color = getPaletteColor(idx, state.hyperedges.length, state.edgePalette);
-    
-    const labelString = `{${edge.vertices.map(vId => {
-      const v = state.vertices.find(vn => vn.id === vId);
-      return v ? v.label : vId;
-    }).join(', ')}}`;
+    const isEditing = state.editingEdgeId === edge.id;
 
-    item.innerHTML = `
-      <div class="list-item-content">
-        <div class="item-color-pill" style="background-color: ${color}"></div>
-        <span class="item-text">${labelString}</span>
-      </div>
-      <button class="btn btn-danger btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-del-edge-id="${edge.id}">✕</button>
-    `;
+    if (isEditing) {
+      const rawVerticesString = edge.vertices.map(vId => {
+        const v = state.vertices.find(vn => vn.id === vId);
+        return v ? v.label : vId;
+      }).join(', ');
+
+      item.innerHTML = `
+        <div class="list-item-content">
+          <div class="item-color-pill" style="background-color: ${color}"></div>
+          <input type="text" class="list-item-edit-input" data-edit-input-id="${edge.id}" value="${rawVerticesString}">
+        </div>
+        <div class="list-item-actions">
+          <button class="btn btn-primary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-save-edge-id="${edge.id}">✓</button>
+          <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-cancel-edit-id="${edge.id}">✕</button>
+        </div>
+      `;
+    } else {
+      const labelString = `{${edge.vertices.map(vId => {
+        const v = state.vertices.find(vn => vn.id === vId);
+        return v ? v.label : vId;
+      }).join(', ')}}`;
+
+      item.innerHTML = `
+        <div class="list-item-content">
+          <div class="item-color-pill" style="background-color: ${color}"></div>
+          <span class="item-text">${labelString}</span>
+        </div>
+        <div class="list-item-actions">
+          <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-edit-edge-id="${edge.id}">✎</button>
+          <button class="btn btn-danger btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-del-edge-id="${edge.id}">✕</button>
+        </div>
+      `;
+    }
     hyperedgesListContainer.appendChild(item);
   });
 
@@ -515,6 +536,56 @@ function updateHyperedgesList() {
       const id = parseInt(btn.getAttribute('data-del-edge-id'));
       removeHyperedge(id);
     });
+  });
+
+  // Attach edit listeners
+  document.querySelectorAll('[data-edit-edge-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-edit-edge-id'));
+      state.editingEdgeId = id;
+      updateHyperedgesList();
+    });
+  });
+
+  // Attach cancel listeners
+  document.querySelectorAll('[data-cancel-edit-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.editingEdgeId = null;
+      updateHyperedgesList();
+    });
+  });
+
+  // Attach save listeners
+  document.querySelectorAll('[data-save-edge-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-save-edge-id'));
+      const input = document.querySelector(`[data-edit-input-id="${id}"]`);
+      if (input) {
+        const val = input.value.trim();
+        const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+        state.editingEdgeId = null;
+        editHyperedge(id, parts);
+      }
+    });
+  });
+
+  // Attach keydown listener on the edit input for saving on 'Enter' and cancelling on 'Escape'
+  document.querySelectorAll('[data-edit-input-id]').forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const id = parseInt(input.getAttribute('data-edit-input-id'));
+        const val = input.value.trim();
+        const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+        state.editingEdgeId = null;
+        editHyperedge(id, parts);
+      } else if (e.key === 'Escape') {
+        state.editingEdgeId = null;
+        updateHyperedgesList();
+      }
+    });
+    input.focus();
+    const len = input.value.length;
+    input.setSelectionRange(len, len);
   });
 }
 
@@ -582,33 +653,6 @@ function triggerLayoutRecompute(resetPositions = false) {
   draw();
 }
 
-/**
- * State modifiers
- */
-function addVertex(label) {
-  if (!label) label = String(state.vertices.length + 1);
-  if (state.vertices.some(v => v.label.toLowerCase() === label.toLowerCase())) {
-    alert("A vertex with this label already exists.");
-    return;
-  }
-  const id = `v_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-  const w = canvas.clientWidth || 800;
-  const h = canvas.clientHeight || 600;
-  
-  const vertex = { id, label };
-  state.vertices.push(vertex);
-
-  physicsLayout.setGraph(state.vertices, state.hyperedges);
-  
-  const simNode = physicsLayout.nodeMap.get(id);
-  if (simNode) {
-    simNode.x = w / 2 + (Math.random() - 0.5) * 80;
-    simNode.y = h / 2 + (Math.random() - 0.5) * 80;
-  }
-  
-  triggerLayoutRecompute();
-  updateHyperedgesList();
-}
 
 function removeVertex(id) {
   state.vertices = state.vertices.filter(v => v.id !== id);
@@ -655,6 +699,37 @@ function addHyperedge(vertexIdentifiers) {
 
 function removeHyperedge(id) {
   state.hyperedges = state.hyperedges.filter(e => e.id !== id);
+  physicsLayout.setGraph(state.vertices, state.hyperedges);
+  triggerLayoutRecompute();
+  updateHyperedgesList();
+}
+
+function editHyperedge(id, vertexIdentifiers) {
+  const edge = state.hyperedges.find(e => e.id === id);
+  if (!edge) return;
+
+  if (vertexIdentifiers.length === 0) {
+    alert("A hyperedge must have at least one vertex.");
+    updateHyperedgesList();
+    return;
+  }
+
+  const mappedIds = [];
+  vertexIdentifiers.forEach(identifier => {
+    const cleanId = String(identifier).trim();
+    const found = state.vertices.find(v => v.label === cleanId || v.id === cleanId);
+    if (found) {
+      mappedIds.push(found.id);
+    } else {
+      const newId = `v_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+      state.vertices.push({ id: newId, label: cleanId });
+      mappedIds.push(newId);
+    }
+  });
+
+  if (mappedIds.length === 0) return;
+
+  edge.vertices = Array.from(new Set(mappedIds));
   physicsLayout.setGraph(state.vertices, state.hyperedges);
   triggerLayoutRecompute();
   updateHyperedgesList();
@@ -805,20 +880,7 @@ function initEvents() {
 
   // Right-click vertex deletion disabled per user request
 
-  // 2. Add node & edge sidebar buttons
-  btnAddVertex.addEventListener('click', () => {
-    const label = inputVertexLabel.value.trim();
-    addVertex(label);
-    inputVertexLabel.value = '';
-  });
 
-  inputVertexLabel.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const label = inputVertexLabel.value.trim();
-      addVertex(label);
-      inputVertexLabel.value = '';
-    }
-  });
 
   btnAddEdge.addEventListener('click', () => {
     const val = inputEdgeVertices.value.trim();
