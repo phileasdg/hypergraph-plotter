@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hypergraph Plotter — Publication-Ready Figure Visualizer</title>
+  <meta name="description" content="An interactive client-side web application for layout, plotting, and high-fidelity vector SVG export of mathematical hypergraphs. Custom force-directed simulation, circular and grid layouts, and custom subset boundaries.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container" id="app-root">
+    
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar" id="control-sidebar">
+      <div class="sidebar-header">
+        <h1>Hypergraph Plotter</h1>
+        <p>Plot & Export Publication-Ready Figures</p>
+      </div>
+
+      <div class="sidebar-content">
+        
+        <!-- Presets Section -->
+        <section class="sidebar-section" id="presets-section">
+          <div class="section-title">
+            <span>Presets</span>
+          </div>
+          <div class="preset-grid" id="presets-container">
+            <button class="preset-btn" id="preset-modular" data-preset="modular">
+              <h5>Modular Network</h5>
+              <span>9 vertices, 6 hyperedges</span>
+            </button>
+            <button class="preset-btn" id="preset-fano" data-preset="fano">
+              <h5>Fano Plane</h5>
+              <span>7 vertices, 7 hyperedges</span>
+            </button>
+            <button class="preset-btn" id="preset-triangle" data-preset="triangle">
+              <h5>Triangle (K3)</h5>
+              <span>3 vertices, 3 hyperedges</span>
+            </button>
+            <button class="preset-btn" id="preset-bipartite" data-preset="bipartite">
+              <h5>Bipartite Hypergraph</h5>
+              <span>6 vertices, 3 hyperedges</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Editor: Add Vertex and Edge -->
+        <section class="sidebar-section" id="editor-section">
+          <div class="section-title">
+            <span>Edit Hypergraph</span>
+          </div>
+          
+          <div class="control-group">
+            <label for="input-vertex-label">Add Vertex</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="input-vertex-label" placeholder="Label (e.g., '1', 'A')" maxlength="15">
+              <button class="btn btn-primary btn-sm" id="btn-add-vertex">Add</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="input-edge-vertices">Add Hyperedge</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="input-edge-vertices" placeholder="Vertices (comma-separated, e.g. 1, 2, 3)">
+              <button class="btn btn-primary btn-sm" id="btn-add-edge">Add</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Hyperedges List</label>
+            <div class="list-container" id="hyperedges-list-container">
+              <!-- Dynamically populated list of hyperedges -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Layout Controls -->
+        <section class="sidebar-section" id="layout-section">
+          <div class="section-title">
+            <span>Layout Engine</span>
+          </div>
+
+          <div class="control-group">
+            <label for="select-layout">Base Layout</label>
+            <div class="select-wrapper">
+              <select id="select-layout">
+                <option value="SpringEmbedding">SpringEmbedding (Physics)</option>
+                <option value="RadialEmbedding">RadialEmbedding (Circular)</option>
+                <option value="GridLayout">GridLayout</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Spring Embedding Settings (Physics) -->
+          <div id="physics-settings" class="sidebar-section" style="border:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Attraction</span>
+                <span class="slider-val" id="val-attraction">0.04</span>
+              </div>
+              <input type="range" id="slider-attraction" min="0.005" max="0.15" step="0.005" value="0.04">
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Repulsion</span>
+                <span class="slider-val" id="val-repulsion">800</span>
+              </div>
+              <input type="range" id="slider-repulsion" min="100" max="3000" step="50" value="800">
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Rest Length</span>
+                <span class="slider-val" id="val-rest-length">60</span>
+              </div>
+              <input type="range" id="slider-rest-length" min="20" max="250" step="5" value="60">
+            </div>
+          </div>
+        </section>
+
+        <!-- Theme / Style Options -->
+        <section class="sidebar-section" id="styles-section">
+          <div class="section-title">
+            <span>Figure Customization</span>
+          </div>
+
+          <div class="control-group">
+            <label for="select-canvas-bg">Canvas Background</label>
+            <div class="select-wrapper">
+              <select id="select-canvas-bg">
+                <option value="white">Pure White (#ffffff)</option>
+                <option value="transparent">Transparent (Vector Export)</option>
+                <option value="light-grey">Off-white (#f8f9fa)</option>
+                <option value="dark-slate">Dark Slate (#1a1e24)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="select-theme">Plot Theme</label>
+            <div class="select-wrapper">
+              <select id="select-theme">
+                <option value="NameLabeled">NameLabeled (Wolfram Default)</option>
+                <option value="Detailed">Detailed (Small Node + Offset Label)</option>
+                <option value="Clean">Minimal (Colored Nodes, No Labels)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="select-font-family">Label Font Family</label>
+            <div class="select-wrapper">
+              <select id="select-font-family">
+                <option value="sans-serif">Sans-serif (Helvetica / Arial)</option>
+                <option value="serif">Serif (Times New Roman / LaTeX)</option>
+                <option value="monospace">Monospace (Courier / Code)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Label Font Size</span>
+              <span class="slider-val" id="val-label-size">12px</span>
+            </div>
+            <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Vertex Disk Size</span>
+              <span class="slider-val" id="val-vertex-size">0.15</span>
+            </div>
+            <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
+          </div>
+
+          <div class="slider-container">
+            <div class="slider-header">
+              <span>Vertex Outline Width</span>
+              <span class="slider-val" id="val-vertex-outline-width">1.5px</span>
+            </div>
+            <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+          </div>
+
+          <div class="toggle-group" id="toggle-boundary-group">
+            <span class="toggle-label">Subset Boundary (Blobs)</span>
+            <label class="switch" for="switch-boundary">
+              <input type="checkbox" id="switch-boundary" checked>
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="slider-container" id="boundary-scale-container">
+              <div class="slider-header">
+                <span>Boundary Padding (Scale)</span>
+                <span class="slider-val" id="val-boundary-scale">2.0</span>
+              </div>
+              <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
+            </div>
+
+            <div class="slider-container" id="blob-opacity-container">
+              <div class="slider-header">
+                <span>Blob Fill Opacity</span>
+                <span class="slider-val" id="val-blob-opacity">0.18</span>
+              </div>
+              <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Blob Outline Width</span>
+                <span class="slider-val" id="val-blob-outline-width">1.5px</span>
+              </div>
+              <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+            </div>
+          </div>
+
+          <div class="toggle-group" id="toggle-hubs-group">
+            <span class="toggle-label">Show Virtual Hubs</span>
+            <label class="switch" for="switch-hubs">
+              <input type="checkbox" id="switch-hubs">
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div class="toggle-group" id="toggle-edge-group">
+            <span class="toggle-label">Subset Edge (Hub Curves)</span>
+            <label class="switch" for="switch-edge">
+              <input type="checkbox" id="switch-edge" checked>
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="slider-container" id="edge-width-container">
+              <div class="slider-header">
+                <span>Edge Line Width</span>
+                <span class="slider-val" id="val-edge-width">2.0px</span>
+              </div>
+              <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="select-edge-style">Edge/Blob Color Palette</label>
+            <div class="select-wrapper">
+              <select id="select-edge-style">
+                <option value="DarkRainbow">DarkRainbow (Wolfram Theme)</option>
+                <option value="Grayscale">Grayscale / Publication Black & White</option>
+                <option value="VibrantPastel">Vibrant Pastel</option>
+                <option value="CoolIce">Cool Ice (Cyans / Purples)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Citation Section -->
+        <section class="sidebar-section" id="citation-section" style="margin-top: auto;">
+          <div class="section-title">
+            <span>Cite This Tool</span>
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+            If you use these figures in an academic publication, please cite this tool:
+          </p>
+          <div style="background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">Dazeley-Gaist, P. (2026). Hypergraph Plotter: An interactive client-side visualizer for publication-ready figures. Retrieved from https://github.com/phileasdg/hypergraph-plotter</div>
+        </section>
+
+        <!-- Actions -->
+        <section class="sidebar-section" style="border-color:transparent; background:transparent; padding:0;">
+          <div class="btn-group-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export" style="font-size:0.8rem; padding: 6px 4px;">Data</button>
+            <button class="btn btn-primary btn-sm" id="btn-export-svg" style="font-size:0.8rem; padding: 6px 4px;">Export SVG</button>
+            <button class="btn btn-danger btn-sm" id="btn-clear-canvas" style="font-size:0.8rem; padding: 6px 4px;">Clear</button>
+          </div>
+        </section>
+
+      </div>
+    </aside>
+
+    <!-- Main Canvas Area -->
+    <main class="canvas-container" id="canvas-main-area">
+      
+      <!-- Floating Layout & Simulation State Controls (Top Right) -->
+      <div class="floating-controls" id="floating-physics-controls">
+        <div class="floating-pill">
+          <button id="btn-physics-play-pause" title="Play/Pause Physics" class="active">⏸</button>
+          <button id="btn-physics-step" title="Step Physics 1 frame">➔</button>
+        </div>
+        <div class="floating-pill">
+          <button id="btn-zoom-in" title="Zoom In">+</button>
+          <button id="btn-zoom-out" title="Zoom Out">−</button>
+          <button id="btn-zoom-fit" title="Zoom Fit">⛶</button>
+        </div>
+      </div>
+
+      <!-- Canvas Keyboard/Mouse Instructions (Bottom Left) -->
+      <div class="floating-help" id="canvas-help-tooltip">
+        <h4>Canvas Interactions</h4>
+        <ul>
+          <li><strong>Drag Node</strong>: Move vertex</li>
+          <li><strong>Drag Canvas</strong>: Pan workspace</li>
+          <li><strong>Scroll Wheel</strong>: Zoom in / out</li>
+        </ul>
+      </div>
+
+      <!-- SVG Canvas rendering layer -->
+      <svg id="hypergraph-canvas">
+        <defs>
+          <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.04)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        
+        <!-- Grid overlay -->
+        <rect width="100%" height="100%" fill="url(#grid-pattern)" id="grid-rect" />
+
+        <!-- Transforming layer for Pan/Zoom -->
+        <g id="zoom-transform-layer">
+          <!-- Blobs layer (Subset Boundary) -->
+          <g id="blobs-layer"></g>
+          
+          <!-- Edges layer (Subset Edge curves) -->
+          <g id="edges-layer"></g>
+
+          <!-- Bipartite Hubs layer (optionally visible virtual hubs) -->
+          <g id="hubs-layer"></g>
+
+          <!-- Vertices layer (Circles) -->
+          <g id="vertices-layer"></g>
+
+          <!-- Labels layer (Text overlays) -->
+          <g id="labels-layer"></g>
+        </g>
+      </svg>
+    </main>
+
+    <!-- Import / Export Modal Overlay -->
+    <div class="modal-overlay" id="modal-import-export-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Import / Export Hypergraph</h3>
+          <button class="modal-close" id="btn-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="control-group">
+            <label for="modal-textarea">Data Format</label>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">
+              Supports JSON or Wolfram Language lists (e.g. <code>{{1, 2, 3}, {2, 3, 5}, {5, 7, 8}}</code>)
+            </p>
+            <textarea id="modal-textarea" placeholder="Paste hyperedges here..."></textarea>
+            <div class="import-error" id="import-error-msg">Failed to parse input data. Please verify the format.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-export-wolfram">Export Wolfram</button>
+          <button class="btn btn-secondary" id="btn-export-json">Export JSON</button>
+          <button class="btn btn-primary" id="btn-import-data">Import</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
