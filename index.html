@@ -50,7 +50,6 @@
             <div class="subgroup-title">Base settings</div>
 
             <div class="control-group">
-              <label for="select-layout">Base layout</label>
               <div class="select-wrapper">
                 <select id="select-layout">
                   <option value="spring-embedding">Spring embedding (physics)</option>
@@ -73,7 +72,7 @@
 
           <!-- Spring Embedding Settings (Physics) -->
           <div id="physics-settings" class="control-subgroup" style="display:flex;">
-            <div class="subgroup-title">Physics engine settings</div>
+            <div class="subgroup-title">Physics</div>
 
             <div class="slider-container">
               <div class="slider-header">
@@ -123,8 +122,11 @@
                     <option value="custom" style="display:none;">Custom</option>
                   </select>
                 </div>
-                <div class="color-picker-wrapper" style="position: relative; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-surface);" title="Choose custom background color">
-                  <input type="color" id="input-canvas-bg-custom" value="#ffffff" style="position: absolute; top: -5px; left: -5px; width: 44px; height: 44px; padding: 0; border: none; cursor: pointer;">
+                <div class="color-picker-wrapper"
+                  style="position: relative; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-surface);"
+                  title="Choose custom background color">
+                  <input type="color" id="input-canvas-bg-custom" value="#ffffff"
+                    style="position: absolute; top: -5px; left: -5px; width: 44px; height: 44px; padding: 0; border: none; cursor: pointer;">
                 </div>
               </div>
             </div>
@@ -367,14 +369,18 @@
         </div>
         <div class="modal-body" style="gap: 12px;">
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px;">
-            Paste JSON or a Wolfram Language list (e.g. <code>{{1, 2, 3}, {2, 3, 5}}</code>):
+            Paste a hyperedge list in the following format (e.g. <code>{{1, 2, 3}, {2, 3, 5}}</code>):
           </p>
           <textarea id="modal-textarea" placeholder="Paste data here..." style="height: 120px;"></textarea>
-          <div class="import-error" id="import-error-msg" style="margin-top: 0; display: none;">Failed to parse input data. Please verify the format.</div>
+          <div class="import-error" id="import-error-msg" style="margin-top: 0; display: none;">Failed to parse input
+            data. Please verify the format.</div>
           <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-            <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram" style="min-width: 120px; height: 34px;">Copy Wolfram</button>
-            <button class="btn btn-secondary btn-sm" id="btn-copy-json" style="min-width: 100px; height: 34px;">Copy JSON</button>
-            <button class="btn btn-primary btn-sm" id="btn-import-data" style="margin-left: auto; min-width: 80px; height: 34px;">Import</button>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram" style="min-width: 120px; height: 34px;">Copy
+              Wolfram</button>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-json" style="min-width: 100px; height: 34px;">Copy
+              JSON</button>
+            <button class="btn btn-primary btn-sm" id="btn-import-data"
+              style="margin-left: auto; min-width: 80px; height: 34px;">Import</button>
           </div>
         </div>
       </div>

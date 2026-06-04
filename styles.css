@@ -49,6 +49,16 @@ body {
   display: flex;
 }
 
+code {
+  font-family: var(--font-mono);
+  background-color: var(--bg-base);
+  padding: 2px 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: var(--text-primary);
+}
+
 /* Scrollbar Customization */
 ::-webkit-scrollbar {
   width: 6px;

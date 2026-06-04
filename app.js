@@ -1291,7 +1291,7 @@ function initEvents() {
             const edgeArr = Array.isArray(edge) ? edge : [edge];
             return {
               id: idx + 1,
-              vertices: edgeArr.map(v => String(v))
+              vertices: Array.from(new Set(edgeArr.map(v => String(v))))
             };
           });
         } else {
@@ -1301,7 +1301,10 @@ function initEvents() {
         const parsed = JSON.parse(val);
         if (parsed.vertices && parsed.hyperedges) {
           state.vertices = parsed.vertices;
-          state.hyperedges = parsed.hyperedges;
+          state.hyperedges = parsed.hyperedges.map(edge => ({
+            ...edge,
+            vertices: Array.from(new Set(edge.vertices))
+          }));
         } else if (Array.isArray(parsed)) {
           const uniqueVertices = new Set();
           parsed.forEach(edge => {
@@ -1310,7 +1313,7 @@ function initEvents() {
           state.vertices = Array.from(uniqueVertices).map(vId => ({ id: vId, label: vId }));
           state.hyperedges = parsed.map((edge, idx) => ({
             id: idx + 1,
-            vertices: edge.map(v => String(v))
+            vertices: Array.from(new Set(edge.map(v => String(v))))
           }));
         } else {
           throw new Error("Invalid format structure");
