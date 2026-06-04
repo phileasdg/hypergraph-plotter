@@ -11,10 +11,10 @@ An interactive, client-side visualizer and vector layout engine designed for mat
 
 ## Citations & acknowledgments
 
-This tool's visual structure and design philosophy are heavily inspired by the Wolfram Language's `HypergraphPlot` function. 
+This tool's visual structure and design philosophy are heavily inspired by the Wolfram Language's `ResourceFunction["HypergraphPlot"]` function. 
 
 - **Wolfram Function Repository citation**:
-  We acknowledge and cite the Wolfram Language `HypergraphPlot` function for its original design of hypergraph subset boundary visualizations:
+  We acknowledge and cite the Wolfram Language `ResourceFunction["HypergraphPlot"]` function for its original design of hypergraph subset boundary visualizations:
   [Wolfram Function Repository - HypergraphPlot](https://resources.wolframcloud.com/FunctionRepository/resources/HypergraphPlot)
 
 - **Citing this tool**:

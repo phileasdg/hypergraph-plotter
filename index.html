@@ -30,13 +30,12 @@
             <span>Edit hypergraph</span>
           </div>
 
-          <div class="control-group">
-            <label>Hyperedges</label>
+          <div class="control-subgroup">
+            <div class="subgroup-title">Hyperedges</div>
             <div class="list-container" id="hyperedges-list-container">
               <!-- Dynamically populated list of hyperedges -->
             </div>
-            <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="margin-top: 8px; width: 100%;">+ Add
-              hyperedge</button>
+            <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="width: 100%;">+ Add hyperedge</button>
           </div>
         </section>
 
@@ -46,29 +45,36 @@
             <span>Layout</span>
           </div>
 
-          <div class="control-group">
-            <label for="select-layout">Base layout</label>
-            <div class="select-wrapper">
-              <select id="select-layout">
-                <option value="spring-embedding">Spring embedding (physics)</option>
-                <option value="radial-embedding">Radial embedding (circular)</option>
-                <option value="grid-layout">Grid layout</option>
-              </select>
-          </div>
+          <!-- Subgroup: Base settings -->
+          <div class="control-subgroup">
+            <div class="subgroup-title">Base settings</div>
 
-          <div class="toggle-group" id="toggle-pin-on-drag-group">
-            <span class="toggle-label">Pin nodes when dragged</span>
-            <label class="switch" for="switch-pin-on-drag">
-              <input type="checkbox" id="switch-pin-on-drag" checked>
-              <span class="slider-round"></span>
-            </label>
-          </div>
+            <div class="control-group">
+              <label for="select-layout">Base layout</label>
+              <div class="select-wrapper">
+                <select id="select-layout">
+                  <option value="spring-embedding">Spring embedding (physics)</option>
+                  <option value="radial-embedding">Radial embedding (circular)</option>
+                  <option value="grid-layout">Grid layout</option>
+                </select>
+              </div>
+            </div>
 
-          <button class="btn btn-secondary btn-sm" id="btn-unpin-all" style="width: 100%; margin-top: 4px;">Unpin all nodes</button>
+            <div class="toggle-group" id="toggle-pin-on-drag-group">
+              <span class="toggle-label">Pin nodes when dragged</span>
+              <label class="switch" for="switch-pin-on-drag">
+                <input type="checkbox" id="switch-pin-on-drag" checked>
+                <span class="slider-round"></span>
+              </label>
+            </div>
+
+            <button class="btn btn-secondary btn-sm" id="btn-unpin-all" style="width: 100%;">Unpin all nodes</button>
+          </div>
 
           <!-- Spring Embedding Settings (Physics) -->
-          <div id="physics-settings" class="sidebar-section"
-            style="border:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+          <div id="physics-settings" class="control-subgroup" style="display:flex;">
+            <div class="subgroup-title">Physics engine settings</div>
+
             <div class="slider-container">
               <div class="slider-header">
                 <span>Attraction</span>
@@ -101,141 +107,167 @@
             <span>Figure customization</span>
           </div>
 
-          <div class="control-group">
-            <label for="select-canvas-bg">Canvas background</label>
-            <div class="select-wrapper">
-              <select id="select-canvas-bg">
-                <option value="white">Pure white (#ffffff)</option>
-                <option value="transparent">Transparent (vector export)</option>
-                <option value="light-grey">Off-white (#f8f9fa)</option>
-                <option value="dark-slate">Dark slate (#1a1e24)</option>
-              </select>
-            </div>
-          </div>
+          <!-- Subgroup: Canvas & grid -->
+          <div class="control-subgroup">
+            <div class="subgroup-title">Canvas & grid</div>
 
-          <div class="toggle-group" id="toggle-grid-group">
-            <span class="toggle-label">Show background grid</span>
-            <label class="switch" for="switch-grid">
-              <input type="checkbox" id="switch-grid" checked>
-              <span class="slider-round"></span>
-            </label>
-          </div>
-
-          <div class="control-group">
-            <label for="select-theme">Plot theme</label>
-            <div class="select-wrapper">
-              <select id="select-theme">
-                <option value="name-labeled">Name labeled (default)</option>
-                <option value="detailed">Detailed (small node + offset label)</option>
-                <option value="clean">Minimal (colored nodes, no labels)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label for="select-font-family">Label font family</label>
-            <div class="select-wrapper">
-              <select id="select-font-family">
-                <option value="sans-serif">Sans-serif (Outfit)</option>
-                <option value="serif">Serif (Times New Roman)</option>
-                <option value="monospace">Monospace (JetBrains Mono)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="slider-container">
-            <div class="slider-header">
-              <span>Label font size</span>
-              <span class="slider-val" id="val-label-size">12px</span>
-            </div>
-            <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
-          </div>
-
-          <div class="slider-container">
-            <div class="slider-header">
-              <span>Vertex disk size</span>
-              <span class="slider-val" id="val-vertex-size">0.15</span>
-            </div>
-            <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
-          </div>
-
-          <div class="slider-container">
-            <div class="slider-header">
-              <span>Vertex outline width</span>
-              <span class="slider-val" id="val-vertex-outline-width">1.5px</span>
-            </div>
-            <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
-          </div>
-
-          <div class="toggle-group" id="toggle-boundary-group">
-            <span class="toggle-label">Subset boundary (blobs)</span>
-            <label class="switch" for="switch-boundary">
-              <input type="checkbox" id="switch-boundary" checked>
-              <span class="slider-round"></span>
-            </label>
-          </div>
-
-          <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
-            <div class="slider-container" id="boundary-scale-container">
-              <div class="slider-header">
-                <span>Boundary padding (scale)</span>
-                <span class="slider-val" id="val-boundary-scale">2.0</span>
+            <div class="control-group">
+              <label for="select-canvas-bg">Canvas background</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="select-wrapper" style="flex: 1;">
+                  <select id="select-canvas-bg">
+                    <option value="transparent" selected>Transparent</option>
+                    <option value="white">Pure white</option>
+                    <option value="light-grey">Off-white</option>
+                    <option value="dark-slate">Dark slate</option>
+                    <option value="custom" style="display:none;">Custom</option>
+                  </select>
+                </div>
+                <div class="color-picker-wrapper" style="position: relative; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-surface);" title="Choose custom background color">
+                  <input type="color" id="input-canvas-bg-custom" value="#ffffff" style="position: absolute; top: -5px; left: -5px; width: 44px; height: 44px; padding: 0; border: none; cursor: pointer;">
+                </div>
               </div>
-              <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
             </div>
 
-            <div class="slider-container" id="blob-opacity-container">
-              <div class="slider-header">
-                <span>Blob fill opacity</span>
-                <span class="slider-val" id="val-blob-opacity">0.18</span>
+            <div class="toggle-group" id="toggle-grid-group">
+              <span class="toggle-label">Show background grid</span>
+              <label class="switch" for="switch-grid">
+                <input type="checkbox" id="switch-grid" checked>
+                <span class="slider-round"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Subgroup: Nodes & labels -->
+          <div class="control-subgroup">
+            <div class="subgroup-title">Nodes & labels</div>
+
+            <div class="control-group">
+              <label for="select-theme">Plot theme</label>
+              <div class="select-wrapper">
+                <select id="select-theme">
+                  <option value="name-labeled">Name labeled (default)</option>
+                  <option value="detailed">Detailed (small node + offset label)</option>
+                  <option value="clean">Minimal (colored nodes, no labels)</option>
+                </select>
               </div>
-              <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+            </div>
+
+            <div class="control-group">
+              <label for="select-font-family">Label font family</label>
+              <div class="select-wrapper">
+                <select id="select-font-family">
+                  <option value="sans-serif">Sans-serif (Outfit)</option>
+                  <option value="serif">Serif (Times New Roman)</option>
+                  <option value="monospace">Monospace (JetBrains Mono)</option>
+                </select>
+              </div>
             </div>
 
             <div class="slider-container">
               <div class="slider-header">
-                <span>Blob outline width</span>
-                <span class="slider-val" id="val-blob-outline-width">1.5px</span>
+                <span>Label font size</span>
+                <span class="slider-val" id="val-label-size">12px</span>
               </div>
-              <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+              <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
             </div>
-          </div>
 
-          <div class="toggle-group" id="toggle-hubs-group">
-            <span class="toggle-label">Show virtual hubs</span>
-            <label class="switch" for="switch-hubs">
-              <input type="checkbox" id="switch-hubs">
-              <span class="slider-round"></span>
-            </label>
-          </div>
-
-          <div class="toggle-group" id="toggle-edge-group">
-            <span class="toggle-label">Subset edge (hub curves)</span>
-            <label class="switch" for="switch-edge">
-              <input type="checkbox" id="switch-edge" checked>
-              <span class="slider-round"></span>
-            </label>
-          </div>
-
-          <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
-            <div class="slider-container" id="edge-width-container">
+            <div class="slider-container">
               <div class="slider-header">
-                <span>Edge line width</span>
-                <span class="slider-val" id="val-edge-width">2.0px</span>
+                <span>Vertex disk size</span>
+                <span class="slider-val" id="val-vertex-size">0.15</span>
               </div>
-              <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+              <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
+            </div>
+
+            <div class="slider-container">
+              <div class="slider-header">
+                <span>Vertex outline width</span>
+                <span class="slider-val" id="val-vertex-outline-width">1.5px</span>
+              </div>
+              <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
             </div>
           </div>
 
-          <div class="control-group">
-            <label for="select-edge-style">Edge/blob color palette</label>
-            <div class="select-wrapper">
-              <select id="select-edge-style">
-                <option value="rainbow">Rainbow</option>
-                <option value="grayscale">Grayscale / publication black & white</option>
-                <option value="pastel">Pastel</option>
-                <option value="cool-ice">Cool ice (cyans / purples)</option>
-              </select>
+          <!-- Subgroup: Subset boundaries (blobs) -->
+          <div class="control-subgroup">
+            <div class="subgroup-title">Subset boundaries</div>
+
+            <div class="toggle-group" id="toggle-boundary-group">
+              <span class="toggle-label">Subset boundary (blobs)</span>
+              <label class="switch" for="switch-boundary">
+                <input type="checkbox" id="switch-boundary" checked>
+                <span class="slider-round"></span>
+              </label>
+            </div>
+
+            <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="slider-container" id="boundary-scale-container">
+                <div class="slider-header">
+                  <span>Boundary padding (scale)</span>
+                  <span class="slider-val" id="val-boundary-scale">2.0</span>
+                </div>
+                <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
+              </div>
+
+              <div class="slider-container" id="blob-opacity-container">
+                <div class="slider-header">
+                  <span>Blob fill opacity</span>
+                  <span class="slider-val" id="val-blob-opacity">0.18</span>
+                </div>
+                <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Blob outline width</span>
+                  <span class="slider-val" id="val-blob-outline-width">1.5px</span>
+                </div>
+                <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+              </div>
+            </div>
+          </div>
+
+          <!-- Subgroup: Subset edges & colors -->
+          <div class="control-subgroup">
+            <div class="subgroup-title">Edges & colors</div>
+
+            <div class="toggle-group" id="toggle-edge-group">
+              <span class="toggle-label">Subset edge (hub curves)</span>
+              <label class="switch" for="switch-edge">
+                <input type="checkbox" id="switch-edge" checked>
+                <span class="slider-round"></span>
+              </label>
+            </div>
+
+            <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="slider-container" id="edge-width-container">
+                <div class="slider-header">
+                  <span>Edge line width</span>
+                  <span class="slider-val" id="val-edge-width">2.0px</span>
+                </div>
+                <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+              </div>
+            </div>
+
+            <div class="toggle-group" id="toggle-hubs-group">
+              <span class="toggle-label">Show virtual hubs</span>
+              <label class="switch" for="switch-hubs">
+                <input type="checkbox" id="switch-hubs">
+                <span class="slider-round"></span>
+              </label>
+            </div>
+
+            <div class="control-group">
+              <label for="select-edge-style">Edge/blob color palette</label>
+              <div class="select-wrapper">
+                <select id="select-edge-style">
+                  <option value="rainbow">Rainbow</option>
+                  <option value="grayscale">Grayscale</option>
+                  <option value="pastel">Pastel</option>
+                  <option value="cool-ice">Cool ice</option>
+                </select>
+              </div>
             </div>
           </div>
         </section>
@@ -328,25 +360,22 @@
 
     <!-- Import / Export Modal Overlay -->
     <div class="modal-overlay" id="modal-import-export-overlay">
-      <div class="modal">
+      <div class="modal" style="width: 480px;">
         <div class="modal-header">
           <h3>Import / export hypergraph</h3>
           <button class="modal-close" id="btn-modal-close">&times;</button>
         </div>
-        <div class="modal-body">
-          <div class="control-group">
-            <label for="modal-textarea">Data format</label>
-            <p style="font-size: 0.8rem; color: var(--text-secondary);">
-              Supports JSON or Wolfram Language lists (e.g. <code>{{1, 2, 3}, {2, 3, 5}, {5, 7, 8}}</code>)
-            </p>
-            <textarea id="modal-textarea" placeholder="Paste hyperedges here..."></textarea>
-            <div class="import-error" id="import-error-msg">Failed to parse input data. Please verify the format.</div>
+        <div class="modal-body" style="gap: 12px;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px;">
+            Paste JSON or a Wolfram Language list (e.g. <code>{{1, 2, 3}, {2, 3, 5}}</code>):
+          </p>
+          <textarea id="modal-textarea" placeholder="Paste data here..." style="height: 120px;"></textarea>
+          <div class="import-error" id="import-error-msg" style="margin-top: 0; display: none;">Failed to parse input data. Please verify the format.</div>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+            <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram" style="min-width: 120px; height: 34px;">Copy Wolfram</button>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-json" style="min-width: 100px; height: 34px;">Copy JSON</button>
+            <button class="btn btn-primary btn-sm" id="btn-import-data" style="margin-left: auto; min-width: 80px; height: 34px;">Import</button>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" id="btn-export-wolfram">Export Wolfram</button>
-          <button class="btn btn-secondary" id="btn-export-json">Export JSON</button>
-          <button class="btn btn-primary" id="btn-import-data">Import</button>
         </div>
       </div>
     </div>

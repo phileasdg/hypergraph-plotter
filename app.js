@@ -21,7 +21,8 @@ const state = {
   pinOnDrag: true,
 
   // Customization Options
-  canvasBg: 'white', // white, transparent, light-grey, dark-slate
+  canvasBg: 'transparent', // transparent, white, light-grey, dark-slate, custom
+  canvasBgCustom: '#ffffff',
   layoutType: 'spring-embedding', // spring-embedding, radial-embedding, grid-layout
   vertexSize: 0.15,
   vertexOutlineWidth: 1.5,
@@ -55,6 +56,7 @@ const labelsLayer = document.getElementById('labels-layer');
 
 // UI Controls
 const selectCanvasBg = document.getElementById('select-canvas-bg');
+const inputCanvasBgCustom = document.getElementById('input-canvas-bg-custom');
 const selectLayout = document.getElementById('select-layout');
 const physicsSettings = document.getElementById('physics-settings');
 const sliderAttraction = document.getElementById('slider-attraction');
@@ -110,8 +112,8 @@ const modalOverlay = document.getElementById('modal-import-export-overlay');
 const btnModalClose = document.getElementById('btn-modal-close');
 const modalTextarea = document.getElementById('modal-textarea');
 const importErrorMsg = document.getElementById('import-error-msg');
-const btnExportWolfram = document.getElementById('btn-export-wolfram');
-const btnExportJSON = document.getElementById('btn-export-json');
+const btnCopyWolfram = document.getElementById('btn-copy-wolfram');
+const btnCopyJson = document.getElementById('btn-copy-json');
 const btnImportData = document.getElementById('btn-import-data');
 
 // Presets removed per user request
@@ -293,6 +295,11 @@ function exportSVG() {
   const hubs = clonedSvg.querySelector('#hubs-layer');
   if (hubs) hubs.remove();
 
+  // 1.5 Remove stroke-dasharray from vertex circles so pinned nodes look regular in export
+  clonedSvg.querySelectorAll('.vertex circle').forEach(circle => {
+    circle.removeAttribute('stroke-dasharray');
+  });
+
   // 2. Set dimensions and namespaces
   const rect = canvas.getBoundingClientRect();
   clonedSvg.setAttribute('width', rect.width);
@@ -301,10 +308,11 @@ function exportSVG() {
   clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
   // 3. Inject solid background rectangle if not transparent
-  let bgFill = '#ffffff';
-  if (state.canvasBg === 'light-grey') bgFill = '#f8f9fa';
+  let bgFill = 'none';
+  if (state.canvasBg === 'white') bgFill = '#ffffff';
+  else if (state.canvasBg === 'light-grey') bgFill = '#f8f9fa';
   else if (state.canvasBg === 'dark-slate') bgFill = '#1a1e24';
-  else if (state.canvasBg === 'transparent') bgFill = 'none';
+  else if (state.canvasBg === 'custom') bgFill = state.canvasBgCustom || '#ffffff';
 
   if (bgFill !== 'none') {
     const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -331,6 +339,22 @@ function exportSVG() {
 }
 
 /**
+ * Helper to determine if a hex color is dark or light using YIQ luminance formula.
+ */
+function isDarkColor(hex) {
+  if (!hex || hex === 'transparent') return false;
+  let color = hex.replace('#', '');
+  if (color.length === 3) {
+    color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
+  }
+  const r = parseInt(color.substr(0, 2), 16);
+  const g = parseInt(color.substr(2, 2), 16);
+  const b = parseInt(color.substr(4, 2), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return yiq < 128;
+}
+
+/**
  * Main render function representing the state on the SVG canvas.
  * Elements are styled using presentation attributes for clean export.
  */
@@ -347,7 +371,7 @@ function draw() {
   const theme = state.plotTheme;
 
   // Resolve theme-specific background contrasts
-  const isDarkCanvas = state.canvasBg === 'dark-slate';
+  const isDarkCanvas = state.canvasBg === 'dark-slate' || (state.canvasBg === 'custom' && isDarkColor(state.canvasBgCustom));
   const labelColor = isDarkCanvas ? '#f8f9fa' : '#212529';
   const nodeStrokeColor = isDarkCanvas ? '#e9ecef' : '#212529';
   const nodeFillColor = isDarkCanvas ? '#2c3036' : '#ffffff';
@@ -888,6 +912,23 @@ function adjustZoom(factor, clientX = null, clientY = null) {
 }
 
 /**
+ * Updates the canvas SVG background color dynamically.
+ */
+function updateCanvasBackground() {
+  if (state.canvasBg === 'white') {
+    canvas.style.backgroundColor = '#ffffff';
+  } else if (state.canvasBg === 'light-grey') {
+    canvas.style.backgroundColor = '#f8f9fa';
+  } else if (state.canvasBg === 'dark-slate') {
+    canvas.style.backgroundColor = '#1a1e24';
+  } else if (state.canvasBg === 'custom') {
+    canvas.style.backgroundColor = state.canvasBgCustom || '#ffffff';
+  } else {
+    canvas.style.backgroundColor = 'transparent';
+  }
+}
+
+/**
  * Event Listeners & Binding
  */
 function initEvents() {
@@ -1007,16 +1048,15 @@ function initEvents() {
   // 3. Settings updates
   selectCanvasBg.addEventListener('change', (e) => {
     state.canvasBg = e.target.value;
-    // Set background colors dynamically
-    if (state.canvasBg === 'white') {
-      canvas.style.backgroundColor = '#ffffff';
-    } else if (state.canvasBg === 'light-grey') {
-      canvas.style.backgroundColor = '#f8f9fa';
-    } else if (state.canvasBg === 'dark-slate') {
-      canvas.style.backgroundColor = '#1a1e24';
-    } else {
-      canvas.style.backgroundColor = 'transparent';
-    }
+    updateCanvasBackground();
+    draw();
+  });
+
+  inputCanvasBgCustom.addEventListener('input', (e) => {
+    state.canvasBg = 'custom';
+    state.canvasBgCustom = e.target.value;
+    selectCanvasBg.value = 'custom';
+    updateCanvasBackground();
     draw();
   });
 
@@ -1172,49 +1212,66 @@ function initEvents() {
     if (e.target === modalOverlay) modalOverlay.classList.remove('active');
   });
 
-  btnExportWolfram.addEventListener('click', () => {
-    const code = `HypergraphPlot[${serializeToWolfram()}]`;
-    modalTextarea.value = code;
-
-    // Copy to Clipboard
-    navigator.clipboard.writeText(code).then(() => {
-      const origText = btnExportWolfram.textContent;
-      btnExportWolfram.textContent = 'Copied!';
-      btnExportWolfram.style.backgroundColor = 'var(--accent-emerald)';
-      btnExportWolfram.style.color = '#ffffff';
-      setTimeout(() => {
-        btnExportWolfram.textContent = origText;
-        btnExportWolfram.style.backgroundColor = '';
-        btnExportWolfram.style.color = '';
-      }, 1500);
-    }).catch(err => {
-      console.error("Clipboard copy failed: ", err);
+  if (btnCopyWolfram) {
+    btnCopyWolfram.addEventListener('click', () => {
+      const wlCode = `ResourceFunction["HypergraphPlot"][${serializeToWolfram()}]`;
+      navigator.clipboard.writeText(wlCode).then(() => {
+        const origText = btnCopyWolfram.textContent;
+        btnCopyWolfram.textContent = 'Copied!';
+        btnCopyWolfram.style.backgroundColor = 'var(--accent-emerald)';
+        btnCopyWolfram.style.color = '#ffffff';
+        setTimeout(() => {
+          btnCopyWolfram.textContent = origText;
+          btnCopyWolfram.style.backgroundColor = '';
+          btnCopyWolfram.style.color = '';
+        }, 1500);
+      }).catch(err => {
+        console.error("Clipboard copy failed: ", err);
+      });
     });
-  });
+  }
 
-  btnExportJSON.addEventListener('click', () => {
-    const data = {
-      vertices: state.vertices,
-      hyperedges: state.hyperedges
-    };
-    const jsonStr = JSON.stringify(data, null, 2);
-    modalTextarea.value = jsonStr;
-
-    // Trigger download
-    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `hypergraph_data_${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  });
+  if (btnCopyJson) {
+    btnCopyJson.addEventListener('click', () => {
+      const data = {
+        vertices: state.vertices,
+        hyperedges: state.hyperedges
+      };
+      const jsonStr = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(jsonStr).then(() => {
+        const origText = btnCopyJson.textContent;
+        btnCopyJson.textContent = 'Copied!';
+        btnCopyJson.style.backgroundColor = 'var(--accent-emerald)';
+        btnCopyJson.style.color = '#ffffff';
+        setTimeout(() => {
+          btnCopyJson.textContent = origText;
+          btnCopyJson.style.backgroundColor = '';
+          btnCopyJson.style.color = '';
+        }, 1500);
+      }).catch(err => {
+        console.error("Clipboard copy failed: ", err);
+      });
+    });
+  }
 
   btnImportData.addEventListener('click', () => {
-    const val = modalTextarea.value.trim();
+    let val = modalTextarea.value.trim();
     if (!val) return;
+
+    // Support extracting the inner list from ResourceFunction["HypergraphPlot"][...] or HypergraphPlot[...] wrappers
+    if (val.startsWith('ResourceFunction["HypergraphPlot"][')) {
+      const firstBracket = val.indexOf('[');
+      const lastBracket = val.lastIndexOf(']');
+      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        val = val.slice(firstBracket + 1, lastBracket).trim();
+      }
+    } else if (val.startsWith('HypergraphPlot[')) {
+      const firstBracket = val.indexOf('[');
+      const lastBracket = val.lastIndexOf(']');
+      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        val = val.slice(firstBracket + 1, lastBracket).trim();
+      }
+    }
 
     try {
       if (val.startsWith('{')) {
@@ -1307,6 +1364,7 @@ function init() {
   physicsLayout.fixedNodeIds = state.pinnedNodeIds;
 
   updatePhysicsParameters();
+  updateCanvasBackground();
   initEvents();
   loadDefaultGraph();
   runLayoutLoop();

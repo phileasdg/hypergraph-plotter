@@ -666,3 +666,25 @@ svg {
   font-size: 0.7rem;
   color: var(--text-muted);
 }
+
+/* Control subgroups for visual hierarchy and structure */
+.control-subgroup {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  background-color: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subgroup-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
