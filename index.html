@@ -15,35 +15,11 @@
     <aside class="sidebar" id="control-sidebar">
       <div class="sidebar-header">
         <h1>Hypergraph Plotter</h1>
-        <p>Plot & Export Publication-Ready Figures</p>
       </div>
 
       <div class="sidebar-content">
         
-        <!-- Presets Section -->
-        <section class="sidebar-section" id="presets-section">
-          <div class="section-title">
-            <span>Presets</span>
-          </div>
-          <div class="preset-grid" id="presets-container">
-            <button class="preset-btn" id="preset-modular" data-preset="modular">
-              <h5>Modular Network</h5>
-              <span>9 vertices, 6 hyperedges</span>
-            </button>
-            <button class="preset-btn" id="preset-fano" data-preset="fano">
-              <h5>Fano Plane</h5>
-              <span>7 vertices, 7 hyperedges</span>
-            </button>
-            <button class="preset-btn" id="preset-triangle" data-preset="triangle">
-              <h5>Triangle (K3)</h5>
-              <span>3 vertices, 3 hyperedges</span>
-            </button>
-            <button class="preset-btn" id="preset-bipartite" data-preset="bipartite">
-              <h5>Bipartite Hypergraph</h5>
-              <span>6 vertices, 3 hyperedges</span>
-            </button>
-          </div>
-        </section>
+
 
         <!-- Editor: Add Vertex and Edge -->
         <section class="sidebar-section" id="editor-section">
@@ -138,11 +114,19 @@
             </div>
           </div>
 
+          <div class="toggle-group" id="toggle-grid-group">
+            <span class="toggle-label">Show Background Grid</span>
+            <label class="switch" for="switch-grid">
+              <input type="checkbox" id="switch-grid" checked>
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
           <div class="control-group">
             <label for="select-theme">Plot Theme</label>
             <div class="select-wrapper">
               <select id="select-theme">
-                <option value="NameLabeled">NameLabeled (Wolfram Default)</option>
+                <option value="NameLabeled">NameLabeled (Default)</option>
                 <option value="Detailed">Detailed (Small Node + Offset Label)</option>
                 <option value="Clean">Minimal (Colored Nodes, No Labels)</option>
               </select>
@@ -153,9 +137,9 @@
             <label for="select-font-family">Label Font Family</label>
             <div class="select-wrapper">
               <select id="select-font-family">
-                <option value="sans-serif">Sans-serif (Helvetica / Arial)</option>
-                <option value="serif">Serif (Times New Roman / LaTeX)</option>
-                <option value="monospace">Monospace (Courier / Code)</option>
+                <option value="sans-serif">Sans-serif (Outfit)</option>
+                <option value="serif">Serif (Times New Roman)</option>
+                <option value="monospace">Monospace (JetBrains Mono)</option>
               </select>
             </div>
           </div>
@@ -248,7 +232,7 @@
             <label for="select-edge-style">Edge/Blob Color Palette</label>
             <div class="select-wrapper">
               <select id="select-edge-style">
-                <option value="DarkRainbow">DarkRainbow (Wolfram Theme)</option>
+                <option value="DarkRainbow">DarkRainbow</option>
                 <option value="Grayscale">Grayscale / Publication Black & White</option>
                 <option value="VibrantPastel">Vibrant Pastel</option>
                 <option value="CoolIce">Cool Ice (Cyans / Purples)</option>
@@ -265,7 +249,7 @@
           <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
             If you use these figures in an academic publication, please cite this tool:
           </p>
-          <div style="background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">Dazeley-Gaist, P. (2026). Hypergraph Plotter: An interactive client-side visualizer for publication-ready figures. Retrieved from https://github.com/phileasdg/hypergraph-plotter</div>
+          <div style="background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">Dazeley-Gaist, P. (2026). Hypergraph Plotter [Software].</div>
         </section>
 
         <!-- Actions -->

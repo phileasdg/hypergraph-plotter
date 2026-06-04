@@ -32,6 +32,7 @@ const state = {
   edgeWidth: 2.0,
   edgePalette: 'DarkRainbow', // DarkRainbow, Grayscale, VibrantPastel, CoolIce
   showHubs: false, // Default to hidden for cleaner academic visual output
+  showGrid: true, // Show grid background by default
   physicsPlaying: true
 };
 
@@ -84,6 +85,7 @@ const valEdgeWidth = document.getElementById('val-edge-width');
 
 const selectEdgeStyle = document.getElementById('select-edge-style');
 const switchHubs = document.getElementById('switch-hubs');
+const switchGrid = document.getElementById('switch-grid');
 
 const btnPhysicsPlayPause = document.getElementById('btn-physics-play-pause');
 const btnPhysicsStep = document.getElementById('btn-physics-step');
@@ -108,83 +110,7 @@ const btnExportWolfram = document.getElementById('btn-export-wolfram');
 const btnExportJSON = document.getElementById('btn-export-json');
 const btnImportData = document.getElementById('btn-import-data');
 
-// Presets
-const presetModular = document.getElementById('preset-modular');
-const presetFano = document.getElementById('preset-fano');
-const presetTriangle = document.getElementById('preset-triangle');
-const presetBipartite = document.getElementById('preset-bipartite');
-
-// Preset Data definitions
-const PRESETS = {
-  fano: {
-    vertices: [
-      { id: '1', label: '1' },
-      { id: '2', label: '2' },
-      { id: '3', label: '3' },
-      { id: '4', label: '4' },
-      { id: '5', label: '5' },
-      { id: '6', label: '6' },
-      { id: '7', label: '7' }
-    ],
-    hyperedges: [
-      { id: 1, vertices: ['1', '2', '3'] },
-      { id: 2, vertices: ['3', '4', '5'] },
-      { id: 3, vertices: ['1', '5', '6'] },
-      { id: 4, vertices: ['1', '4', '7'] },
-      { id: 5, vertices: ['2', '5', '7'] },
-      { id: 6, vertices: ['3', '6', '7'] },
-      { id: 7, vertices: ['2', '4', '6'] }
-    ]
-  },
-  triangle: {
-    vertices: [
-      { id: '1', label: '1' },
-      { id: '2', label: '2' },
-      { id: '3', label: '3' }
-    ],
-    hyperedges: [
-      { id: 1, vertices: ['1', '2'] },
-      { id: 2, vertices: ['2', '3'] },
-      { id: 3, vertices: ['3', '1'] }
-    ]
-  },
-  modular: {
-    vertices: [
-      { id: '1', label: '1' },
-      { id: '2', label: '2' },
-      { id: '3', label: '3' },
-      { id: '4', label: '4' },
-      { id: '5', label: '5' },
-      { id: '6', label: '6' },
-      { id: '7', label: '7' },
-      { id: '8', label: '8' },
-      { id: '9', label: '9' }
-    ],
-    hyperedges: [
-      { id: 1, vertices: ['1', '2', '3'] },
-      { id: 2, vertices: ['4', '5', '6'] },
-      { id: 3, vertices: ['7', '8', '9'] },
-      { id: 4, vertices: ['3', '4'] },
-      { id: 5, vertices: ['6', '7'] },
-      { id: 6, vertices: ['9', '1'] }
-    ]
-  },
-  bipartite: {
-    vertices: [
-      { id: 'a1', label: 'a1' },
-      { id: 'a2', label: 'a2' },
-      { id: 'a3', label: 'a3' },
-      { id: 'b1', label: 'b1' },
-      { id: 'b2', label: 'b2' },
-      { id: 'b3', label: 'b3' }
-    ],
-    hyperedges: [
-      { id: 1, vertices: ['a1', 'a2', 'b1'] },
-      { id: 2, vertices: ['a2', 'a3', 'b2'] },
-      { id: 3, vertices: ['a3', 'a1', 'b3'] }
-    ]
-  }
-};
+// Presets removed per user request
 
 /**
  * Color Generator based on Palette
@@ -734,12 +660,26 @@ function removeHyperedge(id) {
   updateHyperedgesList();
 }
 
-function loadPreset(key) {
-  const preset = PRESETS[key];
-  if (!preset) return;
-  
-  state.vertices = JSON.parse(JSON.stringify(preset.vertices));
-  state.hyperedges = JSON.parse(JSON.stringify(preset.hyperedges));
+function loadDefaultGraph() {
+  state.vertices = [
+    { id: '1', label: '1' },
+    { id: '2', label: '2' },
+    { id: '3', label: '3' },
+    { id: '4', label: '4' },
+    { id: '5', label: '5' },
+    { id: '6', label: '6' },
+    { id: '7', label: '7' },
+    { id: '8', label: '8' },
+    { id: '9', label: '9' }
+  ];
+  state.hyperedges = [
+    { id: 1, vertices: ['1', '2', '3'] },
+    { id: 2, vertices: ['4', '5', '6'] },
+    { id: 3, vertices: ['7', '8', '9'] },
+    { id: 4, vertices: ['3', '4'] },
+    { id: 5, vertices: ['6', '7'] },
+    { id: 6, vertices: ['9', '1'] }
+  ];
   state.selectedVertexIds.clear();
   
   physicsLayout.setGraph(state.vertices, state.hyperedges);
@@ -952,6 +892,14 @@ function initEvents() {
     draw();
   });
 
+  switchGrid.addEventListener('change', (e) => {
+    state.showGrid = e.target.checked;
+    const gridRect = document.getElementById('grid-rect');
+    if (gridRect) {
+      gridRect.style.display = state.showGrid ? 'inline' : 'none';
+    }
+  });
+
   sliderBoundaryScale.addEventListener('input', (e) => {
     state.boundaryScale = parseFloat(e.target.value);
     valBoundaryScale.textContent = parseFloat(e.target.value).toFixed(1);
@@ -1002,8 +950,14 @@ function initEvents() {
     }
   });
 
-  btnZoomIn.addEventListener('click', () => adjustZoom(1.2));
-  btnZoomOut.addEventListener('click', () => adjustZoom(0.8));
+  btnZoomIn.addEventListener('click', () => {
+    const rect = canvas.getBoundingClientRect();
+    adjustZoom(1.2, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  });
+  btnZoomOut.addEventListener('click', () => {
+    const rect = canvas.getBoundingClientRect();
+    adjustZoom(0.8, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  });
   btnZoomFit.addEventListener('click', zoomToFit);
 
   // 5. Action Buttons (Clear, Import/Export modal, Export SVG)
@@ -1032,8 +986,23 @@ function initEvents() {
   });
 
   btnExportWolfram.addEventListener('click', () => {
-    modalTextarea.value = serializeToWolfram();
-    importErrorMsg.style.display = 'none';
+    const code = `HypergraphPlot[${serializeToWolfram()}]`;
+    modalTextarea.value = code;
+    
+    // Copy to Clipboard
+    navigator.clipboard.writeText(code).then(() => {
+      const origText = btnExportWolfram.textContent;
+      btnExportWolfram.textContent = 'Copied!';
+      btnExportWolfram.style.backgroundColor = 'var(--accent-emerald)';
+      btnExportWolfram.style.color = '#ffffff';
+      setTimeout(() => {
+        btnExportWolfram.textContent = origText;
+        btnExportWolfram.style.backgroundColor = '';
+        btnExportWolfram.style.color = '';
+      }, 1500);
+    }).catch(err => {
+      console.error("Clipboard copy failed: ", err);
+    });
   });
 
   btnExportJSON.addEventListener('click', () => {
@@ -1041,8 +1010,19 @@ function initEvents() {
       vertices: state.vertices,
       hyperedges: state.hyperedges
     };
-    modalTextarea.value = JSON.stringify(data, null, 2);
-    importErrorMsg.style.display = 'none';
+    const jsonStr = JSON.stringify(data, null, 2);
+    modalTextarea.value = jsonStr;
+    
+    // Trigger download
+    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `hypergraph_data_${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   });
 
   btnImportData.addEventListener('click', () => {
@@ -1113,12 +1093,7 @@ function initEvents() {
     }
   });
 
-  [presetModular, presetFano, presetTriangle, presetBipartite].forEach(btn => {
-    btn.addEventListener('click', () => {
-      const presetKey = btn.getAttribute('data-preset');
-      loadPreset(presetKey);
-    });
-  });
+  // Presets listeners removed
 
   window.addEventListener('resize', () => {
     const w = canvas.clientWidth;
@@ -1144,7 +1119,7 @@ function init() {
 
   updatePhysicsParameters();
   initEvents();
-  loadPreset('modular');
+  loadDefaultGraph();
   runLayoutLoop();
 }
 
