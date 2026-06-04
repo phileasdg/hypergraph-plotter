@@ -21,6 +21,7 @@ export class BipartiteForceLayout {
     this.nodeMap = new Map(); // id -> node reference
     this.links = []; // bipartite links: { vertexId, hubId }
     this.draggedNodeId = null;
+    this.fixedNodeIds = new Set();
   }
 
   /**
@@ -186,8 +187,8 @@ export class BipartiteForceLayout {
     // 4. Update velocities and positions
     for (let i = 0; i < n; i++) {
       const node = this.nodes[i];
-      if (node.id === this.draggedNodeId) {
-        // Dragged node doesn't move due to forces
+      if (node.id === this.draggedNodeId || (this.fixedNodeIds && this.fixedNodeIds.has(node.id))) {
+        // Dragged or fixed node doesn't move due to forces
         node.vx = 0;
         node.vy = 0;
         continue;

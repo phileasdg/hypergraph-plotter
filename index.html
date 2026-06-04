@@ -27,7 +27,7 @@
         <!-- Editor: Add Vertex and Edge -->
         <section class="sidebar-section" id="editor-section">
           <div class="section-title">
-            <span>Edit Hypergraph</span>
+            <span>Edit hypergraph</span>
           </div>
 
           <div class="control-group">
@@ -36,7 +36,7 @@
               <!-- Dynamically populated list of hyperedges -->
             </div>
             <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="margin-top: 8px; width: 100%;">+ Add
-              Hyperedge</button>
+              hyperedge</button>
           </div>
         </section>
 
@@ -47,15 +47,24 @@
           </div>
 
           <div class="control-group">
-            <label for="select-layout">Base Layout</label>
+            <label for="select-layout">Base layout</label>
             <div class="select-wrapper">
               <select id="select-layout">
-                <option value="SpringEmbedding">SpringEmbedding (Physics)</option>
-                <option value="RadialEmbedding">RadialEmbedding (Circular)</option>
-                <option value="GridLayout">GridLayout</option>
+                <option value="spring-embedding">Spring embedding (physics)</option>
+                <option value="radial-embedding">Radial embedding (circular)</option>
+                <option value="grid-layout">Grid layout</option>
               </select>
-            </div>
           </div>
+
+          <div class="toggle-group" id="toggle-pin-on-drag-group">
+            <span class="toggle-label">Pin nodes when dragged</span>
+            <label class="switch" for="switch-pin-on-drag">
+              <input type="checkbox" id="switch-pin-on-drag" checked>
+              <span class="slider-round"></span>
+            </label>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btn-unpin-all" style="width: 100%; margin-top: 4px;">Unpin all nodes</button>
 
           <!-- Spring Embedding Settings (Physics) -->
           <div id="physics-settings" class="sidebar-section"
@@ -78,7 +87,7 @@
 
             <div class="slider-container">
               <div class="slider-header">
-                <span>Rest Length</span>
+                <span>Rest length</span>
                 <span class="slider-val" id="val-rest-length">60</span>
               </div>
               <input type="range" id="slider-rest-length" min="20" max="250" step="5" value="60">
@@ -89,23 +98,23 @@
         <!-- Theme / Style Options -->
         <section class="sidebar-section" id="styles-section">
           <div class="section-title">
-            <span>Figure Customization</span>
+            <span>Figure customization</span>
           </div>
 
           <div class="control-group">
-            <label for="select-canvas-bg">Canvas Background</label>
+            <label for="select-canvas-bg">Canvas background</label>
             <div class="select-wrapper">
               <select id="select-canvas-bg">
-                <option value="white">Pure White (#ffffff)</option>
-                <option value="transparent">Transparent (Vector Export)</option>
+                <option value="white">Pure white (#ffffff)</option>
+                <option value="transparent">Transparent (vector export)</option>
                 <option value="light-grey">Off-white (#f8f9fa)</option>
-                <option value="dark-slate">Dark Slate (#1a1e24)</option>
+                <option value="dark-slate">Dark slate (#1a1e24)</option>
               </select>
             </div>
           </div>
 
           <div class="toggle-group" id="toggle-grid-group">
-            <span class="toggle-label">Show Background Grid</span>
+            <span class="toggle-label">Show background grid</span>
             <label class="switch" for="switch-grid">
               <input type="checkbox" id="switch-grid" checked>
               <span class="slider-round"></span>
@@ -113,18 +122,18 @@
           </div>
 
           <div class="control-group">
-            <label for="select-theme">Plot Theme</label>
+            <label for="select-theme">Plot theme</label>
             <div class="select-wrapper">
               <select id="select-theme">
-                <option value="NameLabeled">NameLabeled (Default)</option>
-                <option value="Detailed">Detailed (Small Node + Offset Label)</option>
-                <option value="Clean">Minimal (Colored Nodes, No Labels)</option>
+                <option value="name-labeled">Name labeled (default)</option>
+                <option value="detailed">Detailed (small node + offset label)</option>
+                <option value="clean">Minimal (colored nodes, no labels)</option>
               </select>
             </div>
           </div>
 
           <div class="control-group">
-            <label for="select-font-family">Label Font Family</label>
+            <label for="select-font-family">Label font family</label>
             <div class="select-wrapper">
               <select id="select-font-family">
                 <option value="sans-serif">Sans-serif (Outfit)</option>
@@ -136,7 +145,7 @@
 
           <div class="slider-container">
             <div class="slider-header">
-              <span>Label Font Size</span>
+              <span>Label font size</span>
               <span class="slider-val" id="val-label-size">12px</span>
             </div>
             <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
@@ -144,7 +153,7 @@
 
           <div class="slider-container">
             <div class="slider-header">
-              <span>Vertex Disk Size</span>
+              <span>Vertex disk size</span>
               <span class="slider-val" id="val-vertex-size">0.15</span>
             </div>
             <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
@@ -152,14 +161,14 @@
 
           <div class="slider-container">
             <div class="slider-header">
-              <span>Vertex Outline Width</span>
+              <span>Vertex outline width</span>
               <span class="slider-val" id="val-vertex-outline-width">1.5px</span>
             </div>
             <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
           </div>
 
           <div class="toggle-group" id="toggle-boundary-group">
-            <span class="toggle-label">Subset Boundary (Blobs)</span>
+            <span class="toggle-label">Subset boundary (blobs)</span>
             <label class="switch" for="switch-boundary">
               <input type="checkbox" id="switch-boundary" checked>
               <span class="slider-round"></span>
@@ -169,7 +178,7 @@
           <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
             <div class="slider-container" id="boundary-scale-container">
               <div class="slider-header">
-                <span>Boundary Padding (Scale)</span>
+                <span>Boundary padding (scale)</span>
                 <span class="slider-val" id="val-boundary-scale">2.0</span>
               </div>
               <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
@@ -177,7 +186,7 @@
 
             <div class="slider-container" id="blob-opacity-container">
               <div class="slider-header">
-                <span>Blob Fill Opacity</span>
+                <span>Blob fill opacity</span>
                 <span class="slider-val" id="val-blob-opacity">0.18</span>
               </div>
               <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
@@ -185,7 +194,7 @@
 
             <div class="slider-container">
               <div class="slider-header">
-                <span>Blob Outline Width</span>
+                <span>Blob outline width</span>
                 <span class="slider-val" id="val-blob-outline-width">1.5px</span>
               </div>
               <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
@@ -193,7 +202,7 @@
           </div>
 
           <div class="toggle-group" id="toggle-hubs-group">
-            <span class="toggle-label">Show Virtual Hubs</span>
+            <span class="toggle-label">Show virtual hubs</span>
             <label class="switch" for="switch-hubs">
               <input type="checkbox" id="switch-hubs">
               <span class="slider-round"></span>
@@ -201,7 +210,7 @@
           </div>
 
           <div class="toggle-group" id="toggle-edge-group">
-            <span class="toggle-label">Subset Edge (Hub Curves)</span>
+            <span class="toggle-label">Subset edge (hub curves)</span>
             <label class="switch" for="switch-edge">
               <input type="checkbox" id="switch-edge" checked>
               <span class="slider-round"></span>
@@ -211,7 +220,7 @@
           <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
             <div class="slider-container" id="edge-width-container">
               <div class="slider-header">
-                <span>Edge Line Width</span>
+                <span>Edge line width</span>
                 <span class="slider-val" id="val-edge-width">2.0px</span>
               </div>
               <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
@@ -219,13 +228,13 @@
           </div>
 
           <div class="control-group">
-            <label for="select-edge-style">Edge/Blob Color Palette</label>
+            <label for="select-edge-style">Edge/blob color palette</label>
             <div class="select-wrapper">
               <select id="select-edge-style">
-                <option value="Rainbow">Rainbow</option>
-                <option value="Grayscale">Grayscale / Publication Black & White</option>
-                <option value="Pastel">Pastel</option>
-                <option value="CoolIce">Cool Ice (Cyans / Purples)</option>
+                <option value="rainbow">Rainbow</option>
+                <option value="grayscale">Grayscale / publication black & white</option>
+                <option value="pastel">Pastel</option>
+                <option value="cool-ice">Cool ice (cyans / purples)</option>
               </select>
             </div>
           </div>
@@ -234,7 +243,7 @@
         <!-- Citation Section -->
         <section class="sidebar-section" id="citation-section" style="margin-top: auto;">
           <div class="section-title">
-            <span>Cite This Tool</span>
+            <span>Cite this tool</span>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
             If you use these figures in an academic publication, please cite this tool:
@@ -265,24 +274,24 @@
       <!-- Floating Layout & Simulation State Controls (Top Right) -->
       <div class="floating-controls" id="floating-physics-controls">
         <div class="floating-pill">
-          <button id="btn-physics-play-pause" title="Play/Pause Physics" class="active">⏸</button>
-          <button id="btn-physics-step" title="Step Physics 1 frame">➔</button>
+          <button id="btn-physics-play-pause" title="Play/pause physics" class="active">⏸</button>
+          <button id="btn-physics-step" title="Step physics 1 frame">➔</button>
         </div>
         <div class="floating-pill">
-          <button id="btn-zoom-in" title="Zoom In">+</button>
-          <button id="btn-zoom-out" title="Zoom Out">−</button>
-          <button id="btn-recenter" title="Recenter (Without Resizing)">⌖</button>
-          <button id="btn-zoom-fit" title="Zoom to Fit (Centre & Full Screen)">⛶</button>
+          <button id="btn-zoom-in" title="Zoom in">+</button>
+          <button id="btn-zoom-out" title="Zoom out">−</button>
+          <button id="btn-recenter" title="Recenter (without resizing)">⌖</button>
+          <button id="btn-zoom-fit" title="Zoom to fit (centre & full screen)">⛶</button>
         </div>
       </div>
 
       <!-- Canvas Keyboard/Mouse Instructions (Bottom Left) -->
       <div class="floating-help" id="canvas-help-tooltip">
-        <h4>Canvas Interactions</h4>
+        <h4>Canvas interactions</h4>
         <ul>
-          <li><strong>Drag Node</strong>: Move vertex</li>
-          <li><strong>Drag Canvas</strong>: Pan workspace</li>
-          <li><strong>Scroll Wheel</strong>: Zoom in / out</li>
+          <li><strong>Drag node</strong>: Move vertex</li>
+          <li><strong>Drag canvas</strong>: Pan workspace</li>
+          <li><strong>Scroll wheel</strong>: Zoom in / out</li>
         </ul>
       </div>
 
@@ -321,12 +330,12 @@
     <div class="modal-overlay" id="modal-import-export-overlay">
       <div class="modal">
         <div class="modal-header">
-          <h3>Import / Export Hypergraph</h3>
+          <h3>Import / export hypergraph</h3>
           <button class="modal-close" id="btn-modal-close">&times;</button>
         </div>
         <div class="modal-body">
           <div class="control-group">
-            <label for="modal-textarea">Data Format</label>
+            <label for="modal-textarea">Data format</label>
             <p style="font-size: 0.8rem; color: var(--text-secondary);">
               Supports JSON or Wolfram Language lists (e.g. <code>{{1, 2, 3}, {2, 3, 5}, {5, 7, 8}}</code>)
             </p>

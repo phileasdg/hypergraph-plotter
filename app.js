@@ -16,13 +16,16 @@ const state = {
   isPanning: false,
   panStart: { x: 0, y: 0 },
   draggedNodeId: null, // can be a vertex ID or a hub ID
+  hasDragged: false,
+  pinnedNodeIds: new Set(),
+  pinOnDrag: true,
 
   // Customization Options
   canvasBg: 'white', // white, transparent, light-grey, dark-slate
-  layoutType: 'SpringEmbedding', // SpringEmbedding, RadialEmbedding, GridLayout
+  layoutType: 'spring-embedding', // spring-embedding, radial-embedding, grid-layout
   vertexSize: 0.15,
   vertexOutlineWidth: 1.5,
-  plotTheme: 'NameLabeled', // NameLabeled, Detailed, Clean
+  plotTheme: 'name-labeled', // name-labeled, detailed, clean
   labelFontFamily: 'sans-serif', // sans-serif, serif, monospace
   labelFontSize: 12,
   showSubsetBoundary: true,
@@ -31,7 +34,7 @@ const state = {
   blobOutlineWidth: 1.5,
   showSubsetEdge: true,
   edgeWidth: 2.0,
-  edgePalette: 'Rainbow', // Rainbow, Grayscale, Pastel, CoolIce
+  edgePalette: 'rainbow', // rainbow, grayscale, pastel, cool-ice
   showHubs: false, // Default to hidden for cleaner academic visual output
   showGrid: true, // Show grid background by default
   physicsPlaying: true
@@ -87,6 +90,8 @@ const valEdgeWidth = document.getElementById('val-edge-width');
 const selectEdgeStyle = document.getElementById('select-edge-style');
 const switchHubs = document.getElementById('switch-hubs');
 const switchGrid = document.getElementById('switch-grid');
+const switchPinOnDrag = document.getElementById('switch-pin-on-drag');
+const btnUnpinAll = document.getElementById('btn-unpin-all');
 
 const btnPhysicsPlayPause = document.getElementById('btn-physics-play-pause');
 const btnPhysicsStep = document.getElementById('btn-physics-step');
@@ -119,20 +124,20 @@ function getPaletteColor(index, total, palette) {
   const ratio = index / Math.max(1, total);
 
   switch (palette) {
-    case 'Grayscale': {
+    case 'grayscale': {
       // Clean publication grayscale: distributes values evenly between dark gray and solid black
       const grayVal = Math.round(ratio * 55);
       return `hsl(0, 0%, ${grayVal}%)`;
     }
-    case 'Pastel': {
+    case 'pastel': {
       const hue = (index * 137.5) % 360;
       return `hsl(${hue}, 80%, 55%)`;
     }
-    case 'CoolIce': {
+    case 'cool-ice': {
       const hue = 180 + ratio * 90;
       return `hsl(${hue}, 85%, 50%)`;
     }
-    case 'Rainbow':
+    case 'rainbow':
     default: {
       const hue = ratio * 280;
       return `hsl(${hue}, 85%, 45%)`;
@@ -443,14 +448,18 @@ function draw() {
       if (!hubNode) return;
 
       const edgeColor = getPaletteColor(idx, state.hyperedges.length, palette);
+      const isHubPinned = state.pinnedNodeIds.has(hubNode.id);
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', String(hubNode.x));
       circle.setAttribute('cy', String(hubNode.y));
       circle.setAttribute('r', '4');
       circle.setAttribute('fill', edgeColor);
-      circle.setAttribute('stroke', '#ffffff');
-      circle.setAttribute('stroke-width', '1px');
+      circle.setAttribute('stroke', isHubPinned ? 'var(--primary)' : '#ffffff');
+      circle.setAttribute('stroke-width', isHubPinned ? '1.5px' : '1px');
+      if (isHubPinned) {
+        circle.setAttribute('stroke-dasharray', '2,1');
+      }
       circle.setAttribute('fill-opacity', '0.5');
       circle.setAttribute('data-hub-id', hubNode.id);
       circle.style.cursor = 'pointer';
@@ -464,6 +473,7 @@ function draw() {
     if (!simNode) return;
 
     const isSelected = state.selectedVertexIds.has(v.id);
+    const isPinned = state.pinnedNodeIds.has(v.id);
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'vertex');
@@ -477,23 +487,31 @@ function draw() {
     circle.setAttribute('stroke', isSelected ? 'var(--primary)' : nodeStrokeColor);
     circle.setAttribute('stroke-width', `${isSelected ? state.vertexOutlineWidth + 1.5 : state.vertexOutlineWidth}px`);
 
-    if (theme === 'Clean') {
-      circle.setAttribute('r', String(vertexRadius));
+    let currentRadius = vertexRadius;
+    if (theme === 'clean') {
+      currentRadius = vertexRadius;
+      circle.setAttribute('r', String(currentRadius));
       circle.setAttribute('fill', isSelected ? 'var(--primary)' : '#495057');
-    } else if (theme === 'Detailed') {
-      circle.setAttribute('r', String(Math.max(4, vertexRadius * 0.4)));
+    } else if (theme === 'detailed') {
+      currentRadius = Math.max(4, vertexRadius * 0.4);
+      circle.setAttribute('r', String(currentRadius));
       circle.setAttribute('fill', isSelected ? 'var(--primary)' : '#000000');
     } else {
-      // NameLabeled (Default)
-      circle.setAttribute('r', String(vertexRadius));
+      // name-labeled (Default)
+      currentRadius = vertexRadius;
+      circle.setAttribute('r', String(currentRadius));
       circle.setAttribute('fill', isSelected ? '#e9ecef' : nodeFillColor);
     }
 
+    if (isPinned) {
+      circle.setAttribute('stroke-dasharray', '3,2');
+    }
     g.appendChild(circle);
+
     verticesLayer.appendChild(g);
 
     // 5. Draw Labels
-    if (theme !== 'Clean') {
+    if (theme !== 'clean') {
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.textContent = v.label;
 
@@ -504,7 +522,7 @@ function draw() {
       text.setAttribute('font-weight', '500');
       text.setAttribute('pointer-events', 'none');
 
-      if (theme === 'Detailed') {
+      if (theme === 'detailed') {
         text.setAttribute('x', String(simNode.x + Math.max(8, vertexRadius * 0.5)));
         text.setAttribute('y', String(simNode.y - Math.max(8, vertexRadius * 0.5)));
         text.setAttribute('text-anchor', 'start');
@@ -637,7 +655,7 @@ function updateHyperedgesList() {
  * Main layout simulation loop (Animation Frame).
  */
 function runLayoutLoop() {
-  if (state.layoutType === 'SpringEmbedding' && state.physicsPlaying) {
+  if (state.layoutType === 'spring-embedding' && state.physicsPlaying) {
     physicsLayout.tick();
     draw();
   }
@@ -665,7 +683,7 @@ function triggerLayoutRecompute(resetPositions = false) {
   const w = canvas.clientWidth || 800;
   const h = canvas.clientHeight || 600;
 
-  if (state.layoutType === 'SpringEmbedding') {
+  if (state.layoutType === 'spring-embedding') {
     physicsSettings.style.display = 'flex';
     if (resetPositions) {
       physicsLayout.setGraph(state.vertices, state.hyperedges);
@@ -674,9 +692,9 @@ function triggerLayoutRecompute(resetPositions = false) {
     physicsSettings.style.display = 'none';
 
     let posMap;
-    if (state.layoutType === 'RadialEmbedding') {
+    if (state.layoutType === 'radial-embedding') {
       posMap = circularLayout(state.vertices, state.hyperedges, w, h);
-    } else if (state.layoutType === 'GridLayout') {
+    } else if (state.layoutType === 'grid-layout') {
       posMap = gridLayout(state.vertices, state.hyperedges, w, h);
     }
 
@@ -717,6 +735,13 @@ function pruneUnusedVertices() {
   for (const vId of state.selectedVertexIds) {
     if (!activeVertexIds.has(vId)) {
       state.selectedVertexIds.delete(vId);
+    }
+  }
+
+  // Clean up pinned items set
+  for (const vId of state.pinnedNodeIds) {
+    if (!activeVertexIds.has(vId) && !vId.startsWith('_hub_')) {
+      state.pinnedNodeIds.delete(vId);
     }
   }
 }
@@ -808,6 +833,7 @@ function loadDefaultGraph() {
     { id: 6, vertices: ['9', '1'] }
   ];
   state.selectedVertexIds.clear();
+  state.pinnedNodeIds.clear();
 
   physicsLayout.setGraph(state.vertices, state.hyperedges);
 
@@ -895,6 +921,7 @@ function initEvents() {
 
   window.addEventListener('mousemove', (e) => {
     if (state.draggedNodeId) {
+      state.hasDragged = true;
       const coords = getCanvasCoords(e);
       const node = physicsLayout.nodeMap.get(state.draggedNodeId);
       if (node) {
@@ -903,7 +930,7 @@ function initEvents() {
         node.vx = 0;
         node.vy = 0;
 
-        if (!state.physicsPlaying || state.layoutType !== 'SpringEmbedding') {
+        if (!state.physicsPlaying || state.layoutType !== 'spring-embedding') {
           draw();
         }
       }
@@ -915,8 +942,15 @@ function initEvents() {
   });
 
   window.addEventListener('mouseup', () => {
+    if (state.draggedNodeId && state.hasDragged) {
+      if (state.pinOnDrag) {
+        state.pinnedNodeIds.add(state.draggedNodeId);
+        draw();
+      }
+    }
     state.isPanning = false;
     state.draggedNodeId = null;
+    state.hasDragged = false;
     if (physicsLayout) {
       physicsLayout.draggedNodeId = null;
     }
@@ -928,7 +962,33 @@ function initEvents() {
     adjustZoom(factor, e.clientX, e.clientY);
   }, { passive: false });
 
-  // Double-click vertex creation disabled per user request
+  // Double-click to toggle pin state of nodes
+  canvas.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    const target = e.target;
+    const vertexGroup = target.closest('.vertex');
+    if (vertexGroup) {
+      const vId = vertexGroup.getAttribute('data-id');
+      if (state.pinnedNodeIds.has(vId)) {
+        state.pinnedNodeIds.delete(vId);
+      } else {
+        state.pinnedNodeIds.add(vId);
+      }
+      draw();
+      return;
+    }
+    const hubElement = target.closest('.hub');
+    if (hubElement) {
+      const hubId = hubElement.getAttribute('data-hub-id');
+      if (state.pinnedNodeIds.has(hubId)) {
+        state.pinnedNodeIds.delete(hubId);
+      } else {
+        state.pinnedNodeIds.add(hubId);
+      }
+      draw();
+      return;
+    }
+  });
 
   // Right-click vertex deletion disabled per user request
 
@@ -1016,6 +1076,15 @@ function initEvents() {
     }
   });
 
+  switchPinOnDrag.addEventListener('change', (e) => {
+    state.pinOnDrag = e.target.checked;
+  });
+
+  btnUnpinAll.addEventListener('click', () => {
+    state.pinnedNodeIds.clear();
+    draw();
+  });
+
   sliderBoundaryScale.addEventListener('input', (e) => {
     state.boundaryScale = parseFloat(e.target.value);
     valBoundaryScale.textContent = parseFloat(e.target.value).toFixed(1);
@@ -1060,7 +1129,7 @@ function initEvents() {
   });
 
   btnPhysicsStep.addEventListener('click', () => {
-    if (state.layoutType === 'SpringEmbedding') {
+    if (state.layoutType === 'spring-embedding') {
       physicsLayout.tick();
       draw();
     }
@@ -1085,6 +1154,7 @@ function initEvents() {
       state.vertices = [];
       state.hyperedges = [];
       state.selectedVertexIds.clear();
+      state.pinnedNodeIds.clear();
       physicsLayout.setGraph([], []);
       triggerLayoutRecompute();
       updateHyperedgesList();
@@ -1191,6 +1261,7 @@ function initEvents() {
       }
 
       state.selectedVertexIds.clear();
+      state.pinnedNodeIds.clear();
       physicsLayout.setGraph(state.vertices, state.hyperedges);
 
       const w = canvas.clientWidth || 800;
@@ -1233,6 +1304,7 @@ function init() {
     width: w,
     height: h
   });
+  physicsLayout.fixedNodeIds = state.pinnedNodeIds;
 
   updatePhysicsParameters();
   initEvents();
