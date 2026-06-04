@@ -93,6 +93,7 @@ const btnPhysicsStep = document.getElementById('btn-physics-step');
 const btnZoomIn = document.getElementById('btn-zoom-in');
 const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomFit = document.getElementById('btn-zoom-fit');
+const btnRecenter = document.getElementById('btn-recenter');
 
 const inputEdgeVertices = document.getElementById('input-edge-vertices');
 const btnAddEdge = document.getElementById('btn-add-edge');
@@ -230,6 +231,43 @@ function zoomToFit() {
   state.pan.y = height / 2 - graphCenterY * targetZoom;
   
   applyTransform();
+}
+
+/**
+ * Pans the canvas to center the hypergraph layout without changing the current zoom level.
+ */
+function recenterGraph() {
+  if (state.vertices.length === 0) return;
+  
+  const svgRect = canvas.getBoundingClientRect();
+  const width = svgRect.width || 800;
+  const height = svgRect.height || 600;
+  
+  const layoutNodes = physicsLayout.nodes;
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  
+  layoutNodes.forEach(node => {
+    if (node.isHub && !state.showSubsetEdge && !state.showSubsetBoundary) return;
+    minX = Math.min(minX, node.x);
+    maxX = Math.max(maxX, node.x);
+    minY = Math.min(minY, node.y);
+    maxY = Math.max(maxY, node.y);
+  });
+  
+  const graphW = maxX - minX;
+  const graphH = maxY - minY;
+  
+  if (graphW <= 0 || graphH <= 0) return;
+  
+  const graphCenterX = minX + graphW / 2;
+  const graphCenterY = minY + graphH / 2;
+  
+  state.pan.x = width / 2 - graphCenterX * state.zoom;
+  state.pan.y = height / 2 - graphCenterY * state.zoom;
+  
+  applyTransform();
+  draw();
 }
 
 /**
@@ -1021,6 +1059,7 @@ function initEvents() {
     adjustZoom(0.8, rect.left + rect.width / 2, rect.top + rect.height / 2);
   });
   btnZoomFit.addEventListener('click', zoomToFit);
+  btnRecenter.addEventListener('click', recenterGraph);
 
   // 5. Action Buttons (Clear, Import/Export modal, Export SVG)
   btnExportSvg.addEventListener('click', exportSVG);
