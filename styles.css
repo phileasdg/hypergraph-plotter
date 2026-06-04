@@ -427,6 +427,10 @@ input:checked + .slider-round:before {
   box-shadow: var(--shadow-sm);
 }
 
+#btn-recenter {
+  transform: translateY(-1px);
+}
+
 .floating-help {
   position: absolute;
   bottom: 20px;

@@ -95,7 +95,6 @@ const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomFit = document.getElementById('btn-zoom-fit');
 const btnRecenter = document.getElementById('btn-recenter');
 
-const inputEdgeVertices = document.getElementById('input-edge-vertices');
 const btnAddEdge = document.getElementById('btn-add-edge');
 const hyperedgesListContainer = document.getElementById('hyperedges-list-container');
 
@@ -589,6 +588,7 @@ function updateHyperedgesList() {
   document.querySelectorAll('[data-cancel-edit-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       state.editingEdgeId = null;
+      state.hyperedges = state.hyperedges.filter(e => e.vertices.length > 0);
       updateHyperedgesList();
     });
   });
@@ -618,6 +618,7 @@ function updateHyperedgesList() {
         editHyperedge(id, parts);
       } else if (e.key === 'Escape') {
         state.editingEdgeId = null;
+        state.hyperedges = state.hyperedges.filter(e => e.vertices.length > 0);
         updateHyperedgesList();
       }
     });
@@ -706,34 +707,7 @@ function removeVertex(id) {
   updateHyperedgesList();
 }
 
-function addHyperedge(vertexIdentifiers) {
-  if (vertexIdentifiers.length === 0) return;
-  
-  const mappedIds = [];
-  vertexIdentifiers.forEach(identifier => {
-    const cleanId = String(identifier).trim();
-    const found = state.vertices.find(v => v.label === cleanId || v.id === cleanId);
-    if (found) {
-      mappedIds.push(found.id);
-    } else {
-      const newId = `v_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
-      state.vertices.push({ id: newId, label: cleanId });
-      mappedIds.push(newId);
-    }
-  });
 
-  if (mappedIds.length === 0) return;
-
-  const newEdge = {
-    id: Date.now() + Math.floor(Math.random() * 1000),
-    vertices: Array.from(new Set(mappedIds))
-  };
-
-  state.hyperedges.push(newEdge);
-  physicsLayout.setGraph(state.vertices, state.hyperedges);
-  triggerLayoutRecompute();
-  updateHyperedgesList();
-}
 
 function removeHyperedge(id) {
   state.hyperedges = state.hyperedges.filter(e => e.id !== id);
@@ -921,11 +895,13 @@ function initEvents() {
 
 
   btnAddEdge.addEventListener('click', () => {
-    const val = inputEdgeVertices.value.trim();
-    if (!val) return;
-    const parts = val.split(',').map(s => s.trim()).filter(Boolean);
-    addHyperedge(parts);
-    inputEdgeVertices.value = '';
+    const newId = Date.now() + Math.floor(Math.random() * 1000);
+    state.hyperedges.push({
+      id: newId,
+      vertices: []
+    });
+    state.editingEdgeId = newId;
+    updateHyperedgesList();
   });
 
   // 3. Settings updates

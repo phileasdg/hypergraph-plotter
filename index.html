@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hypergraph Plotter — Publication-Ready Figure Visualizer</title>
-  <meta name="description" content="An interactive client-side web application for layout, plotting, and high-fidelity vector SVG export of mathematical hypergraphs. Custom force-directed simulation, circular and grid layouts, and custom subset boundaries.">
+  <meta name="description"
+    content="An interactive client-side web application for layout, plotting, and high-fidelity vector SVG export of mathematical hypergraphs. Custom force-directed simulation, circular and grid layouts, and custom subset boundaries.">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
   <div class="app-container" id="app-root">
-    
+
     <!-- Sidebar Control Panel -->
     <aside class="sidebar" id="control-sidebar">
       <div class="sidebar-header">
@@ -18,7 +21,7 @@
       </div>
 
       <div class="sidebar-content">
-        
+
 
 
         <!-- Editor: Add Vertex and Edge -->
@@ -26,20 +29,14 @@
           <div class="section-title">
             <span>Edit Hypergraph</span>
           </div>
-          
-          <div class="control-group">
-            <label for="input-edge-vertices">Add Hyperedge</label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="input-edge-vertices" placeholder="Vertices (comma-separated, e.g. 1, 2, 3)">
-              <button class="btn btn-primary btn-sm" id="btn-add-edge">Add</button>
-            </div>
-          </div>
 
           <div class="control-group">
-            <label>Hyperedges List</label>
+            <label>Hyperedges</label>
             <div class="list-container" id="hyperedges-list-container">
               <!-- Dynamically populated list of hyperedges -->
             </div>
+            <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="margin-top: 8px; width: 100%;">+ Add
+              Hyperedge</button>
           </div>
         </section>
 
@@ -61,7 +58,8 @@
           </div>
 
           <!-- Spring Embedding Settings (Physics) -->
-          <div id="physics-settings" class="sidebar-section" style="border:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
+          <div id="physics-settings" class="sidebar-section"
+            style="border:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">
             <div class="slider-container">
               <div class="slider-header">
                 <span>Attraction</span>
@@ -241,15 +239,20 @@
           <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
             If you use these figures in an academic publication, please cite this tool:
           </p>
-          <div style="background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">Dazeley-Gaist, P. (2026). Hypergraph Plotter [Software].</div>
+          <div
+            style="background: var(--bg-base); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-primary); margin-top: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all;">
+            Dazeley-Gaist, P. (2026). Hypergraph Plotter [Software].</div>
         </section>
 
         <!-- Actions -->
         <section class="sidebar-section" style="border-color:transparent; background:transparent; padding:0;">
           <div class="btn-group-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export" style="font-size:0.8rem; padding: 6px 4px;">Data</button>
-            <button class="btn btn-primary btn-sm" id="btn-export-svg" style="font-size:0.8rem; padding: 6px 4px;">Export SVG</button>
-            <button class="btn btn-danger btn-sm" id="btn-clear-canvas" style="font-size:0.8rem; padding: 6px 4px;">Clear</button>
+            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export"
+              style="font-size:0.8rem; padding: 6px 4px;">Data</button>
+            <button class="btn btn-primary btn-sm" id="btn-export-svg"
+              style="font-size:0.8rem; padding: 6px 4px;">Export SVG</button>
+            <button class="btn btn-danger btn-sm" id="btn-clear-canvas"
+              style="font-size:0.8rem; padding: 6px 4px;">Clear</button>
           </div>
         </section>
 
@@ -258,7 +261,7 @@
 
     <!-- Main Canvas Area -->
     <main class="canvas-container" id="canvas-main-area">
-      
+
       <!-- Floating Layout & Simulation State Controls (Top Right) -->
       <div class="floating-controls" id="floating-physics-controls">
         <div class="floating-pill">
@@ -268,8 +271,8 @@
         <div class="floating-pill">
           <button id="btn-zoom-in" title="Zoom In">+</button>
           <button id="btn-zoom-out" title="Zoom Out">−</button>
-          <button id="btn-zoom-fit" title="Zoom Fit">⛶</button>
-          <button id="btn-recenter" title="Recenter View">⌖</button>
+          <button id="btn-recenter" title="Recenter (Without Resizing)">⌖</button>
+          <button id="btn-zoom-fit" title="Zoom to Fit (Centre & Full Screen)">⛶</button>
         </div>
       </div>
 
@@ -287,10 +290,10 @@
       <svg id="hypergraph-canvas">
         <defs>
           <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.04)" stroke-width="1"/>
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.04)" stroke-width="1" />
           </pattern>
         </defs>
-        
+
         <!-- Grid overlay -->
         <rect width="100%" height="100%" fill="url(#grid-pattern)" id="grid-rect" />
 
@@ -298,7 +301,7 @@
         <g id="zoom-transform-layer">
           <!-- Blobs layer (Subset Boundary) -->
           <g id="blobs-layer"></g>
-          
+
           <!-- Edges layer (Subset Edge curves) -->
           <g id="edges-layer"></g>
 
@@ -344,4 +347,5 @@
   <!-- Scripts -->
   <script type="module" src="app.js"></script>
 </body>
+
 </html>
