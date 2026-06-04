@@ -7,16 +7,16 @@ const state = {
   hyperedges: [],
   selectedVertexIds: new Set(),
   editingEdgeId: null, // Track which hyperedge is currently being edited
-  
+
   // Canvas Transform
   pan: { x: 0, y: 0 },
   zoom: 1.0,
-  
+
   // Dragging / Interaction State
   isPanning: false,
   panStart: { x: 0, y: 0 },
   draggedNodeId: null, // can be a vertex ID or a hub ID
-  
+
   // Customization Options
   canvasBg: 'white', // white, transparent, light-grey, dark-slate
   layoutType: 'SpringEmbedding', // SpringEmbedding, RadialEmbedding, GridLayout
@@ -31,7 +31,7 @@ const state = {
   blobOutlineWidth: 1.5,
   showSubsetEdge: true,
   edgeWidth: 2.0,
-  edgePalette: 'DarkRainbow', // DarkRainbow, Grayscale, VibrantPastel, CoolIce
+  edgePalette: 'Rainbow', // Rainbow, Grayscale, Pastel, CoolIce
   showHubs: false, // Default to hidden for cleaner academic visual output
   showGrid: true, // Show grid background by default
   physicsPlaying: true
@@ -117,14 +117,14 @@ const btnImportData = document.getElementById('btn-import-data');
 function getPaletteColor(index, total, palette) {
   if (total <= 0) return 'hsl(0, 0%, 20%)';
   const ratio = index / Math.max(1, total);
-  
+
   switch (palette) {
     case 'Grayscale': {
       // Clean publication grayscale: distributes values evenly between dark gray and solid black
       const grayVal = Math.round(ratio * 55);
       return `hsl(0, 0%, ${grayVal}%)`;
     }
-    case 'VibrantPastel': {
+    case 'Pastel': {
       const hue = (index * 137.5) % 360;
       return `hsl(${hue}, 80%, 55%)`;
     }
@@ -132,7 +132,7 @@ function getPaletteColor(index, total, palette) {
       const hue = 180 + ratio * 90;
       return `hsl(${hue}, 85%, 50%)`;
     }
-    case 'DarkRainbow':
+    case 'Rainbow':
     default: {
       const hue = ratio * 280;
       return `hsl(${hue}, 85%, 45%)`;
@@ -147,16 +147,16 @@ function parseMathematicaList(str) {
   let jsonLike = str.replace(/\{/g, '[').replace(/\}/g, ']');
   const tokenRegex = /\[|\]|,|"[^"]*"|'[^']*'|[^[\],'"\s]+/g;
   const tokens = jsonLike.match(tokenRegex) || [];
-  
+
   const parsedTokens = tokens.map(t => {
     if (t === '[' || t === ']' || t === ',') return t;
     if (t.startsWith('"') || t.startsWith("'")) return t;
     if (!isNaN(t)) return t;
-    
+
     const escaped = t.replace(/"/g, '\\"');
     return `"${escaped}"`;
   });
-  
+
   const jsonText = parsedTokens.join('');
   return JSON.parse(jsonText);
 }
@@ -195,15 +195,15 @@ function getVertexRadius() {
  */
 function zoomToFit() {
   if (state.vertices.length === 0) return;
-  
+
   const svgRect = canvas.getBoundingClientRect();
   const width = svgRect.width || 800;
   const height = svgRect.height || 600;
-  
+
   const layoutNodes = physicsLayout.nodes;
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
-  
+
   layoutNodes.forEach(node => {
     if (node.isHub && !state.showSubsetEdge && !state.showSubsetBoundary) return;
     minX = Math.min(minX, node.x);
@@ -211,60 +211,65 @@ function zoomToFit() {
     minY = Math.min(minY, node.y);
     maxY = Math.max(maxY, node.y);
   });
-  
+
   const graphW = maxX - minX;
   const graphH = maxY - minY;
-  
+
   if (graphW <= 0 || graphH <= 0) return;
-  
+
   const padding = 80;
   const scaleX = (width - padding * 2) / graphW;
   const scaleY = (height - padding * 2) / graphH;
   const targetZoom = Math.max(0.1, Math.min(2.5, Math.min(scaleX, scaleY)));
-  
+
   const graphCenterX = minX + graphW / 2;
   const graphCenterY = minY + graphH / 2;
-  
+
   state.zoom = targetZoom;
   state.pan.x = width / 2 - graphCenterX * targetZoom;
   state.pan.y = height / 2 - graphCenterY * targetZoom;
-  
+
   applyTransform();
 }
 
 /**
- * Pans the canvas to center the hypergraph layout without changing the current zoom level.
+ * Pans the canvas viewport to center the layout centroid in the middle of the screen
+ * without modifying the current zoom level of the viewer.
  */
 function recenterGraph() {
   if (state.vertices.length === 0) return;
-  
+
   const svgRect = canvas.getBoundingClientRect();
   const width = svgRect.width || 800;
   const height = svgRect.height || 600;
-  
+
+  // Compute graph layout bounding box coordinates
   const layoutNodes = physicsLayout.nodes;
   let minX = Infinity, maxX = -Infinity;
   let minY = Infinity, maxY = -Infinity;
-  
+
   layoutNodes.forEach(node => {
+    // Skip virtual hubs if they are not active in rendering
     if (node.isHub && !state.showSubsetEdge && !state.showSubsetBoundary) return;
     minX = Math.min(minX, node.x);
     maxX = Math.max(maxX, node.x);
     minY = Math.min(minY, node.y);
     maxY = Math.max(maxY, node.y);
   });
-  
+
   const graphW = maxX - minX;
   const graphH = maxY - minY;
-  
+
   if (graphW <= 0 || graphH <= 0) return;
-  
+
+  // Calculate coordinates of the center point of the graph bounding box
   const graphCenterX = minX + graphW / 2;
   const graphCenterY = minY + graphH / 2;
-  
+
+  // Translate coordinates to center the centroid based on current zoom
   state.pan.x = width / 2 - graphCenterX * state.zoom;
   state.pan.y = height / 2 - graphCenterY * state.zoom;
-  
+
   applyTransform();
   draw();
 }
@@ -275,27 +280,27 @@ function recenterGraph() {
  */
 function exportSVG() {
   const clonedSvg = canvas.cloneNode(true);
-  
+
   // 1. Remove editor helper elements
   const grid = clonedSvg.querySelector('#grid-rect');
   if (grid) grid.remove();
-  
+
   const hubs = clonedSvg.querySelector('#hubs-layer');
   if (hubs) hubs.remove();
-  
+
   // 2. Set dimensions and namespaces
   const rect = canvas.getBoundingClientRect();
   clonedSvg.setAttribute('width', rect.width);
   clonedSvg.setAttribute('height', rect.height);
   clonedSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
   clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  
+
   // 3. Inject solid background rectangle if not transparent
   let bgFill = '#ffffff';
   if (state.canvasBg === 'light-grey') bgFill = '#f8f9fa';
   else if (state.canvasBg === 'dark-slate') bgFill = '#1a1e24';
   else if (state.canvasBg === 'transparent') bgFill = 'none';
-  
+
   if (bgFill !== 'none') {
     const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     bgRect.setAttribute('width', '100%');
@@ -303,14 +308,14 @@ function exportSVG() {
     bgRect.setAttribute('fill', bgFill);
     clonedSvg.insertBefore(bgRect, clonedSvg.firstChild);
   }
-  
+
   // 4. Generate XML string and trigger download
   const serializer = new XMLSerializer();
   const svgString = serializer.serializeToString(clonedSvg);
-  
+
   const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = `hypergraph_${state.layoutType.toLowerCase()}_${Date.now()}.svg`;
@@ -374,7 +379,7 @@ function draw() {
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', pathData);
-      
+
       // Inline styles for vector graphics compliance
       path.setAttribute('fill', blobColor);
       path.setAttribute('stroke', blobColor);
@@ -491,7 +496,7 @@ function draw() {
     if (theme !== 'Clean') {
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.textContent = v.label;
-      
+
       // Inline styles for text elements
       text.setAttribute('font-family', fontFamilyStr);
       text.setAttribute('font-size', `${state.labelFontSize}px`);
@@ -518,7 +523,7 @@ function draw() {
  */
 function updateHyperedgesList() {
   hyperedgesListContainer.innerHTML = '';
-  
+
   if (state.hyperedges.length === 0) {
     hyperedgesListContainer.innerHTML = '<div class="list-item" style="color:var(--text-muted); justify-content:center;">No hyperedges defined</div>';
     return;
@@ -527,7 +532,7 @@ function updateHyperedgesList() {
   state.hyperedges.forEach((edge, idx) => {
     const item = document.createElement('div');
     item.className = 'list-item';
-    
+
     const color = getPaletteColor(idx, state.hyperedges.length, state.edgePalette);
     const isEditing = state.editingEdgeId === edge.id;
 
@@ -647,7 +652,7 @@ function updatePhysicsParameters() {
   physicsLayout.kAttract = parseFloat(sliderAttraction.value);
   physicsLayout.kRepel = parseFloat(sliderRepulsion.value);
   physicsLayout.restLength = parseFloat(sliderRestLength.value);
-  
+
   valAttraction.textContent = sliderAttraction.value;
   valRepulsion.textContent = sliderRepulsion.value;
   valRestLength.textContent = sliderRestLength.value;
@@ -667,7 +672,7 @@ function triggerLayoutRecompute(resetPositions = false) {
     }
   } else {
     physicsSettings.style.display = 'none';
-    
+
     let posMap;
     if (state.layoutType === 'RadialEmbedding') {
       posMap = circularLayout(state.vertices, state.hyperedges, w, h);
@@ -693,6 +698,29 @@ function triggerLayoutRecompute(resetPositions = false) {
 }
 
 
+/**
+ * Scans all hyperedges in the state and deletes any vertices that are no longer part
+ * of any remaining hyperedge. Also cleans up selection states for pruned vertices.
+ */
+function pruneUnusedVertices() {
+  const activeVertexIds = new Set();
+  state.hyperedges.forEach(edge => {
+    edge.vertices.forEach(vId => {
+      activeVertexIds.add(vId);
+    });
+  });
+
+  // Keep only vertices that are present in at least one hyperedge
+  state.vertices = state.vertices.filter(v => activeVertexIds.has(v.id));
+
+  // Clean up selected items set
+  for (const vId of state.selectedVertexIds) {
+    if (!activeVertexIds.has(vId)) {
+      state.selectedVertexIds.delete(vId);
+    }
+  }
+}
+
 function removeVertex(id) {
   state.vertices = state.vertices.filter(v => v.id !== id);
   state.selectedVertexIds.delete(id);
@@ -707,19 +735,26 @@ function removeVertex(id) {
   updateHyperedgesList();
 }
 
-
-
 function removeHyperedge(id) {
   state.hyperedges = state.hyperedges.filter(e => e.id !== id);
+  pruneUnusedVertices();
   physicsLayout.setGraph(state.vertices, state.hyperedges);
   triggerLayoutRecompute();
   updateHyperedgesList();
 }
 
+/**
+ * Modifies an existing hyperedge with new vertices. Creates new vertex node objects
+ * dynamically for any identifier labels that do not already exist, and clears out
+ * any isolated vertices that are left unused after editing.
+ * @param {number} id - The ID of the hyperedge to edit.
+ * @param {Array<string>} vertexIdentifiers - List of vertex names (e.g. ['1', '2', 'A']).
+ */
 function editHyperedge(id, vertexIdentifiers) {
   const edge = state.hyperedges.find(e => e.id === id);
   if (!edge) return;
 
+  // Prevent saving empty hyperedges
   if (vertexIdentifiers.length === 0) {
     alert("A hyperedge must have at least one vertex.");
     updateHyperedgesList();
@@ -733,6 +768,7 @@ function editHyperedge(id, vertexIdentifiers) {
     if (found) {
       mappedIds.push(found.id);
     } else {
+      // Create a new vertex dynamically if it does not exist
       const newId = `v_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
       state.vertices.push({ id: newId, label: cleanId });
       mappedIds.push(newId);
@@ -741,7 +777,11 @@ function editHyperedge(id, vertexIdentifiers) {
 
   if (mappedIds.length === 0) return;
 
+  // Update hyperedge vertices, remove duplicate references, and clean up isolated nodes
   edge.vertices = Array.from(new Set(mappedIds));
+  pruneUnusedVertices();
+
+  // Rebuild forces bipartite model and restart layout embedding
   physicsLayout.setGraph(state.vertices, state.hyperedges);
   triggerLayoutRecompute();
   updateHyperedgesList();
@@ -768,9 +808,9 @@ function loadDefaultGraph() {
     { id: 6, vertices: ['9', '1'] }
   ];
   state.selectedVertexIds.clear();
-  
+
   physicsLayout.setGraph(state.vertices, state.hyperedges);
-  
+
   const w = canvas.clientWidth || 800;
   const h = canvas.clientHeight || 600;
   const posMap = circularLayout(state.vertices, state.hyperedges, w, h);
@@ -784,7 +824,7 @@ function loadDefaultGraph() {
 
   triggerLayoutRecompute();
   updateHyperedgesList();
-  
+
   setTimeout(zoomToFit, 100);
 }
 
@@ -804,19 +844,19 @@ function getCanvasCoords(event) {
 function adjustZoom(factor, clientX = null, clientY = null) {
   const oldZoom = state.zoom;
   state.zoom = Math.max(0.1, Math.min(10.0, state.zoom * factor));
-  
+
   if (clientX !== null && clientY !== null) {
     const rect = canvas.getBoundingClientRect();
     const mx = clientX - rect.left;
     const my = clientY - rect.top;
-    
+
     const localX = (mx - state.pan.x) / oldZoom;
     const localY = (my - state.pan.y) / oldZoom;
-    
+
     state.pan.x = mx - localX * state.zoom;
     state.pan.y = my - localY * state.zoom;
   }
-  
+
   applyTransform();
   draw();
 }
@@ -825,11 +865,11 @@ function adjustZoom(factor, clientX = null, clientY = null) {
  * Event Listeners & Binding
  */
 function initEvents() {
-  
+
   // 1. Zoom and Pan event listeners on SVG
   canvas.addEventListener('mousedown', (e) => {
     const target = e.target;
-    
+
     const vertexGroup = target.closest('.vertex');
     if (vertexGroup) {
       const vId = vertexGroup.getAttribute('data-id');
@@ -862,7 +902,7 @@ function initEvents() {
         node.y = coords.y;
         node.vx = 0;
         node.vy = 0;
-        
+
         if (!state.physicsPlaying || state.layoutType !== 'SpringEmbedding') {
           draw();
         }
@@ -1065,7 +1105,7 @@ function initEvents() {
   btnExportWolfram.addEventListener('click', () => {
     const code = `HypergraphPlot[${serializeToWolfram()}]`;
     modalTextarea.value = code;
-    
+
     // Copy to Clipboard
     navigator.clipboard.writeText(code).then(() => {
       const origText = btnExportWolfram.textContent;
@@ -1089,7 +1129,7 @@ function initEvents() {
     };
     const jsonStr = JSON.stringify(data, null, 2);
     modalTextarea.value = jsonStr;
-    
+
     // Trigger download
     const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -1105,7 +1145,7 @@ function initEvents() {
   btnImportData.addEventListener('click', () => {
     const val = modalTextarea.value.trim();
     if (!val) return;
-    
+
     try {
       if (val.startsWith('{')) {
         const parsed = parseMathematicaList(val);
@@ -1152,7 +1192,7 @@ function initEvents() {
 
       state.selectedVertexIds.clear();
       physicsLayout.setGraph(state.vertices, state.hyperedges);
-      
+
       const w = canvas.clientWidth || 800;
       const h = canvas.clientHeight || 600;
       physicsLayout.nodes.forEach(node => {
