@@ -14,6 +14,7 @@ export class BipartiteForceLayout {
     this.kRepel = options.kRepel !== undefined ? options.kRepel : 2400;
     this.kCenter = options.kCenter !== undefined ? options.kCenter : 0.004;
     this.restLength = options.restLength !== undefined ? options.restLength : 35;
+    this.componentSpacing = options.componentSpacing !== undefined ? options.componentSpacing : 180;
     this.damping = options.damping !== undefined ? options.damping : 0.88;
     this.maxSpeed = options.maxSpeed !== undefined ? options.maxSpeed : 10;
 
@@ -39,19 +40,108 @@ export class BipartiteForceLayout {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
+    // Detect Connected Components of the hypergraph (bipartite BFS)
+    const components = [];
+    const visitedVertices = new Set();
+    const vertexMap = new Map(vertices.map(v => [v.id, v]));
+
+    // Build vertex-to-hyperedge adjacency list
+    const adj = new Map();
+    vertices.forEach(v => adj.set(v.id, new Set()));
+    hyperedges.forEach(e => {
+      e.vertices.forEach(vId => {
+        if (adj.has(vId)) {
+          adj.get(vId).add(e.id);
+        }
+      });
+    });
+
+    vertices.forEach(v => {
+      if (visitedVertices.has(v.id)) return;
+
+      const compVertices = [];
+      const compEdges = new Set();
+      const queue = [v.id];
+      visitedVertices.add(v.id);
+
+      while (queue.length > 0) {
+        const currV = queue.shift();
+        compVertices.push(currV);
+
+        const edgeIds = adj.get(currV) || [];
+        edgeIds.forEach(eId => {
+          compEdges.add(eId);
+          const edge = hyperedges.find(e => e.id === eId);
+          if (edge) {
+            edge.vertices.forEach(nextV => {
+              if (vertexMap.has(nextV) && !visitedVertices.has(nextV)) {
+                visitedVertices.add(nextV);
+                queue.push(nextV);
+              }
+            });
+          }
+        });
+      }
+
+      components.push({
+        vertices: compVertices,
+        edges: Array.from(compEdges)
+      });
+    });
+
+    // Sort components by size (vertices count) descending
+    components.sort((a, b) => b.vertices.length - a.vertices.length);
+
+    // Map each node ID to its initial spawn coordinate and component ID
+    const nodeTargetCenters = new Map();
+    const numComponents = components.length;
+
+    // Use a pre-separation radius for components when spawning
+    // Use componentSpacing if it's > 0, otherwise default to a reasonable value (e.g. 150)
+    const R = this.componentSpacing > 0 ? this.componentSpacing : 150;
+
+    components.forEach((comp, idx) => {
+      // Angle on spawning circle
+      const angle = numComponents <= 1 ? 0 : (idx / numComponents) * 2 * Math.PI;
+      const spawnX = numComponents <= 1 ? centerX : centerX + R * Math.cos(angle);
+      const spawnY = numComponents <= 1 ? centerY : centerY + R * Math.sin(angle);
+
+      // Target centers for simulation is always the global center (centerX, centerY)
+      comp.vertices.forEach(vId => nodeTargetCenters.set(vId, {
+        spawnX,
+        spawnY,
+        targetX: centerX,
+        targetY: centerY,
+        componentId: idx
+      }));
+      comp.edges.forEach(eId => nodeTargetCenters.set(`_hub_${eId}`, {
+        spawnX,
+        spawnY,
+        targetX: centerX,
+        targetY: centerY,
+        componentId: idx
+      }));
+    });
+
     // 1. Add Vertices
     vertices.forEach(v => {
       const oldNode = oldNodeMap.get(v.id);
-      // New nodes spawn in a ring around centre — far enough to animate in visibly,
-      // but within the layout canvas bounds so they are never clipped.
+      const target = nodeTargetCenters.get(v.id) || { spawnX: centerX, spawnY: centerY, targetX: centerX, targetY: centerY, componentId: 0 };
+
+      // Spawn vertices in a ring around their COMPONENT spawn center instead of the global center
+      // to start them pre-separated and prevent overlapping components on load.
       const angle = Math.random() * 2 * Math.PI;
-      const radius = 130 + Math.random() * 40; // 130–170 px from centre
+      const radius = numComponents <= 1 ? (130 + Math.random() * 40) : (30 + Math.random() * 20);
+
       const node = {
         id: v.id,
         isHub: false,
         label: v.label || String(v.id),
-        x: oldNode ? oldNode.x : centerX + Math.cos(angle) * radius,
-        y: oldNode ? oldNode.y : centerY + Math.sin(angle) * radius,
+        targetX: target.targetX,
+        targetY: target.targetY,
+        componentId: target.componentId !== undefined ? target.componentId : 0,
+        x: oldNode ? oldNode.x : target.spawnX + Math.cos(angle) * radius,
+        y: oldNode ? oldNode.y : target.spawnY + Math.sin(angle) * radius,
         vx: oldNode ? oldNode.vx : 0,
         vy: oldNode ? oldNode.vy : 0
       };
@@ -64,6 +154,7 @@ export class BipartiteForceLayout {
       if (e.vertices.length <= 1) return;
       const hubId = `_hub_${e.id}`;
       const oldNode = oldNodeMap.get(hubId);
+      const target = nodeTargetCenters.get(hubId) || { x: centerX, y: centerY };
 
       // Initial position of hub is center of gravity of its vertices
       let initX = 0;
@@ -81,8 +172,8 @@ export class BipartiteForceLayout {
         initX /= count;
         initY /= count;
       } else {
-        initX = centerX;
-        initY = centerY;
+        initX = target.x;
+        initY = target.y;
       }
 
       const node = {
@@ -90,6 +181,9 @@ export class BipartiteForceLayout {
         edgeId: e.id,
         isHub: true,
         label: '',
+        targetX: target.targetX,
+        targetY: target.targetY,
+        componentId: target.componentId !== undefined ? target.componentId : 0,
         x: oldNode ? oldNode.x : initX,
         y: oldNode ? oldNode.y : initY,
         vx: oldNode ? oldNode.vx : 0,
@@ -141,16 +235,34 @@ export class BipartiteForceLayout {
           d = Math.sqrt(dx * dx + dy * dy);
         }
 
-        // Repulsion strength: soft repel at small distances to prevent division by zero
-        // F = kRepel / (d + epsilon)
-        const force = this.kRepel / (d * d);
-        const fX = (dx / d) * force;
-        const fY = (dy / d) * force;
+        let force = 0;
+        if (n1.componentId === n2.componentId) {
+          // Standard repulsion within the same component
+          force = this.kRepel / (d * d);
+        } else {
+          // Repulsion between different components: skip virtual hubs to prevent feedback loops
+          if (n1.isHub || n2.isHub) continue;
 
-        fx[i] += fX;
-        fy[i] += fY;
-        fx[j] -= fX;
-        fy[j] -= fY;
+          const goal = this.componentSpacing;
+          if (goal <= 0) {
+            // No repulsion at all if componentSpacing is 0
+            continue;
+          }
+          if (d < goal) {
+            // Separation force pushes nodes from different components apart if closer than the goal
+            force = 0.25 * (goal - d);
+          }
+        }
+
+        if (force > 0) {
+          const fX = (dx / d) * force;
+          const fY = (dy / d) * force;
+
+          fx[i] += fX;
+          fy[i] += fY;
+          fx[j] -= fX;
+          fy[j] -= fY;
+        }
       }
     }
 
@@ -179,11 +291,13 @@ export class BipartiteForceLayout {
       fy[idxH] += fY;
     });
 
-    // 3. Gravity / Centering force (attraction to center)
+    // 3. Gravity / Centering force (attraction to component center target)
     for (let i = 0; i < n; i++) {
       const node = this.nodes[i];
-      const dx = centerX - node.x;
-      const dy = centerY - node.y;
+      const targetX = node.targetX !== undefined ? node.targetX : centerX;
+      const targetY = node.targetY !== undefined ? node.targetY : centerY;
+      const dx = targetX - node.x;
+      const dy = targetY - node.y;
       
       fx[i] += dx * this.kCenter;
       fy[i] += dy * this.kCenter;

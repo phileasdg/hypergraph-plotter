@@ -19,6 +19,8 @@ const sliderRepulsion = document.getElementById('slider-repulsion');
 const inputRepulsion = document.getElementById('input-repulsion');
 const sliderRestLength = document.getElementById('slider-rest-length');
 const inputRestLength = document.getElementById('input-rest-length');
+const sliderComponentSpacing = document.getElementById('slider-component-spacing');
+const inputComponentSpacing = document.getElementById('input-component-spacing');
 
 const selectTheme = document.getElementById('select-theme');
 const fontFamilyControlGroup = document.getElementById('font-family-control-group');
@@ -368,28 +370,43 @@ function addHyperedge() {
 }
 
 /**
- * Loads the default demonstration hypergraph (Modular Network).
+ * Loads the default demonstration hypergraph (Multi-Component Benchmark).
  */
 function loadDefaultGraph() {
-  const defaultVertices = [
-    { id: '1', label: '1' },
-    { id: '2', label: '2' },
-    { id: '3', label: '3' },
-    { id: '4', label: '4' },
-    { id: '5', label: '5' },
-    { id: '6', label: '6' },
-    { id: '7', label: '7' },
-    { id: '8', label: '8' },
-    { id: '9', label: '9' }
+  const edgeList = [
+    ['9', '10', '1'],
+    ['1', '2', '3'],
+    ['3', '4', '5'],
+    ['5', '6', '7'],
+    ['7', '8', '9'],
+    ['11', '12', '13'],
+    ['14', '15', '16'],
+    ['17', '18', '19'],
+    ['13', '14'],
+    ['16', '17'],
+    ['19', '11'],
+    ['21'],
+    ['22', '23'],
+    ['24', '25', '26'],
+    ['27', '28', '29', '30'],
+    ['31', '32', '33', '34', '35'],
+    ['36', '37', '38', '39', '40', '41']
   ];
-  const defaultEdges = [
-    { id: 1, vertices: ['1', '2', '3'] },
-    { id: 2, vertices: ['4', '5', '6'] },
-    { id: 3, vertices: ['7', '8', '9'] },
-    { id: 4, vertices: ['3', '4'] },
-    { id: 5, vertices: ['6', '7'] },
-    { id: 6, vertices: ['9', '1'] }
-  ];
+
+  const uniqueVertices = new Set();
+  edgeList.forEach(edge => {
+    edge.forEach(v => uniqueVertices.add(v));
+  });
+
+  const defaultVertices = Array.from(uniqueVertices)
+    .map(v => parseInt(v))
+    .sort((a, b) => a - b)
+    .map(v => ({ id: String(v), label: String(v) }));
+
+  const defaultEdges = edgeList.map((edge, idx) => ({
+    id: idx + 1,
+    vertices: edge
+  }));
 
   plotter.pinnedNodeIds.clear();
   plotter.selectedVertexIds.clear();
@@ -450,6 +467,10 @@ function syncCustomizationInputs() {
   sliderRestLength.value = opt.restLength;
   inputRestLength.value = opt.restLength;
   resizeNumberInput(inputRestLength);
+
+  sliderComponentSpacing.value = opt.componentSpacing;
+  inputComponentSpacing.value = opt.componentSpacing;
+  resizeNumberInput(inputComponentSpacing);
 
   sliderLabelSize.value = opt.labelFontSize;
   inputLabelSize.value = opt.labelFontSize;
@@ -544,6 +565,7 @@ function initControllerEvents() {
   linkSliderAndInput(sliderAttraction, inputAttraction, (val) => plotter.setOptions({ kAttract: val }));
   linkSliderAndInput(sliderRepulsion, inputRepulsion, (val) => plotter.setOptions({ kRepel: val }));
   linkSliderAndInput(sliderRestLength, inputRestLength, (val) => plotter.setOptions({ restLength: val }));
+  linkSliderAndInput(sliderComponentSpacing, inputComponentSpacing, (val) => plotter.setOptions({ componentSpacing: val }));
   linkSliderAndInput(sliderLabelSize, inputLabelSize, (val) => plotter.setOptions({ labelFontSize: val }));
   linkSliderAndInput(sliderVertexSize, inputVertexSize, (val) => plotter.setOptions({ vertexSize: val }));
   linkSliderAndInput(sliderVertexOutlineWidth, inputVertexOutlineWidth, (val) => plotter.setOptions({ vertexOutlineWidth: val }));
@@ -843,8 +865,7 @@ function init() {
   // Instantiate the library class on the SVG container element
   plotter = new HypergraphPlotter(canvasElement, {
     width: w,
-    height: h,
-    initialZoom: 1.5
+    height: h
   });
 
   // Handle data-sync callback back to sidebar list

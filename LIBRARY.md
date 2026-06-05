@@ -166,5 +166,6 @@ Configure layouts and styles by passing these keys in the options object or usin
 | **`kRepel`** | *Number* | `2400` | Inter-node repulsion coefficient. |
 | **`kCenter`** | *Number* | `0.004` | Center-of-gravity attraction coefficient. |
 | **`restLength`** | *Number* | `35` | Equilibrium rest length of spring link lines. |
+| **`componentSpacing`** | *Number* | `180` | Distance radius separating targets of disconnected connected components. |
 | **`damping`** | *Number* | `0.88` | Damping coefficient (velocity decay rate). |
 | **`maxSpeed`** | *Number* | `10` | Maximum speed limit of vertices per layout tick step. |

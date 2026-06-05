@@ -48,6 +48,7 @@ export class HypergraphPlotter {
       kRepel: 2400,
       kCenter: 0.004,
       restLength: 35,
+      componentSpacing: 180,
       damping: 0.88,
       maxSpeed: 10,
       ...options
@@ -186,6 +187,7 @@ export class HypergraphPlotter {
       kRepel: this.options.kRepel,
       kCenter: this.options.kCenter,
       restLength: this.options.restLength,
+      componentSpacing: this.options.componentSpacing,
       damping: this.options.damping,
       maxSpeed: this.options.maxSpeed
     });
@@ -530,19 +532,15 @@ export class HypergraphPlotter {
     this.physicsLayout.setGraph(this.vertices, this.hyperedges);
 
     if (this.options.layoutType === 'spring-embedding') {
-      // A handful of ticks breaks exact spawn-point overlaps without
-      // pre-running the animation the user should see.
-      for (let i = 0; i < 3; i++) {
+      // Warm up the simulation so it is mostly settled before framing/rendering
+      const ticks = isFirstLoad ? 120 : 60;
+      for (let i = 0; i < ticks; i++) {
         this.physicsLayout.tick();
       }
     } else {
       this._applyStaticLayout();
     }
 
-    // Apply initialZoom only on the very first data load so the graph
-    // appears at a comfortable size without filling the whole viewport.
-    // Also set pan so the layout centre (width/2, height/2) lands on the
-    // screen centre — otherwise the graph starts in the top-left corner.
     if (isFirstLoad && this.options.initialZoom != null) {
       const svgRect = this.svg.getBoundingClientRect();
       const screenW = svgRect.width  || this.options.width;
@@ -551,6 +549,15 @@ export class HypergraphPlotter {
       this.pan.x = screenW / 2 - (this.physicsLayout.width  / 2) * this.zoom;
       this.pan.y = screenH / 2 - (this.physicsLayout.height / 2) * this.zoom;
       this.applyTransform();
+    } else {
+      // Fit to viewport with reasonable extra spacing (18% padding for first load, default for subsequent)
+      const svgRect = this.svg.getBoundingClientRect();
+      const width = svgRect.width || this.options.width;
+      const height = svgRect.height || this.options.height;
+      const padding = isFirstLoad 
+        ? Math.max(60, Math.min(width * 0.18, height * 0.18)) 
+        : null;
+      this.zoomToFit(padding);
     }
 
     if (this.onDataChanged) {
@@ -579,8 +586,14 @@ export class HypergraphPlotter {
       this.physicsLayout.kRepel = this.options.kRepel;
       this.physicsLayout.kCenter = this.options.kCenter;
       this.physicsLayout.restLength = this.options.restLength;
+      this.physicsLayout.componentSpacing = this.options.componentSpacing;
       this.physicsLayout.damping = this.options.damping;
       this.physicsLayout.maxSpeed = this.options.maxSpeed;
+
+      // Update target centers immediately if spacing parameter changes
+      if (options.componentSpacing !== undefined && this.vertices.length > 0) {
+        this.physicsLayout.setGraph(this.vertices, this.hyperedges);
+      }
     }
 
     if (this.options.layoutType !== 'spring-embedding') {
