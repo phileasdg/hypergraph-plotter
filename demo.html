@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HypergraphPlotter Library Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #f8f9fa;
+      --bg-card: #ffffff;
+      --border-color: #e9ecef;
+      --text-primary: #212529;
+      --text-secondary: #495057;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    p {
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    #plotter-mount {
+      width: 100%;
+      height: 450px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: #ffffff;
+      margin-bottom: 20px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      background-color: #ffffff;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      border-color: #ced4da;
+    }
+
+    button.primary {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    button.primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .code-box {
+      margin-top: 30px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 24px;
+    }
+
+    pre {
+      background: #1a1e24;
+      color: #f8f9fa;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>HypergraphPlotter Library Demo</h1>
+    <p>
+      This demo showcases the <code>HypergraphPlotter</code> class library imported as an ES module, mounting an interactive graph simulation inside a custom container and updating options dynamically.
+    </p>
+
+    <!-- Mount Point -->
+    <div id="plotter-mount"></div>
+
+    <!-- API Action Controls -->
+    <div class="btn-group">
+      <button class="primary" id="btn-recenter">Recenter View</button>
+      <button class="primary" id="btn-zoom-fit">Zoom to Fit</button>
+      <button id="btn-grid">Toggle Grid</button>
+      <button id="btn-palette">Next Color Palette</button>
+      <button id="btn-theme">Toggle Labels Theme</button>
+      <button id="btn-add">Add Random Edge</button>
+    </div>
+
+    <!-- Usage Code Snippet -->
+    <div class="code-box">
+      <h3>Integration Code Example</h3>
+      <pre><code>import { HypergraphPlotter } from './hypergraph-plotter.js';
+
+const plotter = new HypergraphPlotter('#plotter-mount', {
+  layoutType: 'spring-embedding',
+  edgePalette: 'warm-sunset',
+  showGrid: true
+});
+
+plotter.setData({
+  vertices: [
+    { id: 'v1', label: 'A' },
+    { id: 'v2', label: 'B' },
+    { id: 'v3', label: 'C' }
+  ],
+  hyperedges: [
+    { id: 1, vertices: ['v1', 'v2', 'v3'] }
+  ]
+});</code></pre>
+    </div>
+  </div>
+
+  <!-- Library script execution -->
+  <script type="module">
+    import { HypergraphPlotter } from './hypergraph-plotter.js';
+
+    // 1. Initialize the Plotter
+    const plotter = new HypergraphPlotter('#plotter-mount', {
+      layoutType: 'spring-embedding',
+      plotTheme: 'name-labeled',
+      edgePalette: 'warm-sunset',
+      showGrid: true,
+      gridColor: '#3b82f6',
+      gridOpacity: 0.05
+    });
+
+    // 2. Load Initial Graph Data
+    plotter.setData({
+      vertices: [
+        { id: 'v1', label: 'A' },
+        { id: 'v2', label: 'B' },
+        { id: 'v3', label: 'C' },
+        { id: 'v4', label: 'D' },
+        { id: 'v5', label: 'E' }
+      ],
+      hyperedges: [
+        { id: 1, vertices: ['v1', 'v2', 'v3'] },
+        { id: 2, vertices: ['v3', 'v4', 'v5'] },
+        { id: 3, vertices: ['v1', 'v5'] }
+      ]
+    });
+
+    // 3. Bind Control Buttons to API Methods
+    document.getElementById('btn-recenter').addEventListener('click', () => {
+      plotter.recenter();
+    });
+
+    document.getElementById('btn-zoom-fit').addEventListener('click', () => {
+      plotter.zoomToFit();
+    });
+
+    document.getElementById('btn-grid').addEventListener('click', () => {
+      const showGrid = !plotter.options.showGrid;
+      plotter.setOptions({ showGrid });
+    });
+
+    const palettes = ['warm-sunset', 'ocean-breeze', 'cyberpunk', 'aurora', 'desert-sand', 'academic-bold'];
+    let paletteIdx = 0;
+    document.getElementById('btn-palette').addEventListener('click', () => {
+      paletteIdx = (paletteIdx + 1) % palettes.length;
+      plotter.setOptions({ edgePalette: palettes[paletteIdx] });
+    });
+
+    const themes = ['name-labeled', 'detailed', 'clean'];
+    let themeIdx = 0;
+    document.getElementById('btn-theme').addEventListener('click', () => {
+      themeIdx = (themeIdx + 1) % themes.length;
+      plotter.setOptions({ plotTheme: themes[themeIdx] });
+    });
+
+    let nextNodeId = 6;
+    let nextEdgeId = 4;
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const newVertexId = `v${nextNodeId}`;
+      const newVertexLabel = String.fromCharCode(64 + nextNodeId); // F, G, H...
+      
+      // Add a vertex to data state
+      plotter.vertices.push({ id: newVertexId, label: newVertexLabel });
+      
+      // Select 2 random existing vertices + the new vertex for a 3-edge
+      const v1 = plotter.vertices[Math.floor(Math.random() * (plotter.vertices.length - 1))].id;
+      const v2 = plotter.vertices[Math.floor(Math.random() * (plotter.vertices.length - 1))].id;
+      
+      plotter.hyperedges.push({
+        id: nextEdgeId++,
+        vertices: Array.from(new Set([v1, v2, newVertexId]))
+      });
+
+      // Reload dataset to trigger physics update
+      plotter.setData({
+        vertices: plotter.vertices,
+        hyperedges: plotter.hyperedges
+      });
+
+      nextNodeId++;
+    });
+  </script>
+</body>
+</html>
