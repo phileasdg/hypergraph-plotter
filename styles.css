@@ -57,6 +57,7 @@ code {
   border-radius: 4px;
   font-size: 0.85em;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 /* Scrollbar Customization */
@@ -208,8 +209,11 @@ select {
 .slider-header {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .slider-val {
@@ -226,6 +230,7 @@ input[type="range"] {
   outline: none;
   appearance: none;
   cursor: pointer;
+  margin: 0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -483,13 +488,32 @@ svg {
   user-select: none;
 }
 
-/* Editor list styling */
 .list-container {
-  max-height: 160px;
+  height: auto;
+  min-height: 80px;
+  resize: vertical;
   overflow-y: auto;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--bg-base);
+}
+
+/* Default state: no user resizing yet */
+.list-container:not([style*="height"]) {
+  max-height: 330px; /* Fits approx 10 edges before scrolling */
+}
+
+/* User has resized: allow resizing up to all hyperedges */
+.list-container[style*="height"] {
+  max-height: var(--content-h, 1000px);
+}
+
+.list-container::-webkit-resizer {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M10,0 L0,10 M10,4 L4,10 M10,8 L8,10" stroke="%23888888" stroke-width="1.2"/></svg>');
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  width: 10px;
+  height: 10px;
 }
 
 .list-item {
@@ -697,4 +721,68 @@ svg {
   border-bottom: 1px dashed var(--border-color);
   padding-bottom: 4px;
   margin-bottom: 2px;
+}
+
+/* Slider Number Inputs styling */
+.slider-number-input {
+  min-width: 45px;
+  max-width: 80px;
+  text-align: right;
+  padding: 3px 8px 3px 6px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.slider-number-input:focus {
+  border-color: var(--primary);
+}
+
+/* Hide spin buttons for standard inputs */
+.slider-number-input::-webkit-outer-spin-button,
+.slider-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.slider-number-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Consistent color picker styling */
+.color-picker-wrapper {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.color-picker-wrapper:hover {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.color-picker-wrapper input[type="color"] {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
 }

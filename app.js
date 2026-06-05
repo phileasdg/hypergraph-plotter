@@ -38,6 +38,8 @@ const state = {
   edgePalette: 'rainbow', // rainbow, grayscale, pastel, cool-ice
   showHubs: false, // Default to hidden for cleaner academic visual output
   showGrid: true, // Show grid background by default
+  gridColor: '#000000',
+  gridOpacity: 0.04,
   physicsPlaying: true
 };
 
@@ -53,6 +55,7 @@ const edgesLayer = document.getElementById('edges-layer');
 const hubsLayer = document.getElementById('hubs-layer');
 const verticesLayer = document.getElementById('vertices-layer');
 const labelsLayer = document.getElementById('labels-layer');
+const gridPatternPath = document.getElementById('grid-pattern-path');
 
 // UI Controls
 const selectCanvasBg = document.getElementById('select-canvas-bg');
@@ -60,38 +63,44 @@ const inputCanvasBgCustom = document.getElementById('input-canvas-bg-custom');
 const selectLayout = document.getElementById('select-layout');
 const physicsSettings = document.getElementById('physics-settings');
 const sliderAttraction = document.getElementById('slider-attraction');
-const valAttraction = document.getElementById('val-attraction');
+const inputAttraction = document.getElementById('input-attraction');
 const sliderRepulsion = document.getElementById('slider-repulsion');
-const valRepulsion = document.getElementById('val-repulsion');
+const inputRepulsion = document.getElementById('input-repulsion');
 const sliderRestLength = document.getElementById('slider-rest-length');
-const valRestLength = document.getElementById('val-rest-length');
+const inputRestLength = document.getElementById('input-rest-length');
 
 const selectTheme = document.getElementById('select-theme');
+const fontFamilyControlGroup = document.getElementById('font-family-control-group');
+const fontSizeSliderContainer = document.getElementById('font-size-slider-container');
 const selectFontFamily = document.getElementById('select-font-family');
 const sliderLabelSize = document.getElementById('slider-label-size');
-const valLabelSize = document.getElementById('val-label-size');
+const inputLabelSize = document.getElementById('input-label-size');
 const sliderVertexSize = document.getElementById('slider-vertex-size');
-const valVertexSize = document.getElementById('val-vertex-size');
+const inputVertexSize = document.getElementById('input-vertex-size');
 const sliderVertexOutlineWidth = document.getElementById('slider-vertex-outline-width');
-const valVertexOutlineWidth = document.getElementById('val-vertex-outline-width');
+const inputVertexOutlineWidth = document.getElementById('input-vertex-outline-width');
 
 const switchBoundary = document.getElementById('switch-boundary');
 const boundaryControlsSubgroup = document.getElementById('boundary-controls-subgroup');
 const sliderBoundaryScale = document.getElementById('slider-boundary-scale');
-const valBoundaryScale = document.getElementById('val-boundary-scale');
+const inputBoundaryScale = document.getElementById('input-boundary-scale');
 const sliderBlobOpacity = document.getElementById('slider-blob-opacity');
-const valBlobOpacity = document.getElementById('val-blob-opacity');
+const inputBlobOpacity = document.getElementById('input-blob-opacity');
 const sliderBlobOutlineWidth = document.getElementById('slider-blob-outline-width');
-const valBlobOutlineWidth = document.getElementById('val-blob-outline-width');
+const inputBlobOutlineWidth = document.getElementById('input-blob-outline-width');
 
 const switchEdge = document.getElementById('switch-edge');
 const edgeControlsSubgroup = document.getElementById('edge-controls-subgroup');
 const sliderEdgeWidth = document.getElementById('slider-edge-width');
-const valEdgeWidth = document.getElementById('val-edge-width');
+const inputEdgeWidth = document.getElementById('input-edge-width');
 
 const selectEdgeStyle = document.getElementById('select-edge-style');
 const switchHubs = document.getElementById('switch-hubs');
 const switchGrid = document.getElementById('switch-grid');
+const gridCustomControls = document.getElementById('grid-custom-controls');
+const inputGridColor = document.getElementById('input-grid-color');
+const sliderGridOpacity = document.getElementById('slider-grid-opacity');
+const inputGridOpacity = document.getElementById('input-grid-opacity');
 const switchPinOnDrag = document.getElementById('switch-pin-on-drag');
 const btnUnpinAll = document.getElementById('btn-unpin-all');
 
@@ -569,6 +578,7 @@ function updateHyperedgesList() {
 
   if (state.hyperedges.length === 0) {
     hyperedgesListContainer.innerHTML = '<div class="list-item" style="color:var(--text-muted); justify-content:center;">No hyperedges defined</div>';
+    hyperedgesListContainer.style.setProperty('--content-h', `${hyperedgesListContainer.scrollHeight}px`);
     return;
   }
 
@@ -674,6 +684,9 @@ function updateHyperedgesList() {
     const len = input.value.length;
     input.setSelectionRange(len, len);
   });
+
+  // Set the CSS variable for content height to support dragging/resizing up to all hyperedges
+  hyperedgesListContainer.style.setProperty('--content-h', `${hyperedgesListContainer.scrollHeight}px`);
 }
 
 /**
@@ -688,17 +701,118 @@ function runLayoutLoop() {
 }
 
 /**
- * Sets layout configuration parameters in physics engine.
+ * Resizes a number input to dynamically fit its content length.
  */
-function updatePhysicsParameters() {
-  if (!physicsLayout) return;
-  physicsLayout.kAttract = parseFloat(sliderAttraction.value);
-  physicsLayout.kRepel = parseFloat(sliderRepulsion.value);
-  physicsLayout.restLength = parseFloat(sliderRestLength.value);
+function resizeNumberInput(input) {
+  const valLength = input.value.length || 1;
+  input.style.width = `calc(${valLength}ch + 20px)`;
+}
 
-  valAttraction.textContent = sliderAttraction.value;
-  valRepulsion.textContent = sliderRepulsion.value;
-  valRestLength.textContent = sliderRestLength.value;
+/**
+ * Links a range slider and a number input, syncing their values.
+ * Allows entering numbers outside the slider's default min/max ranges.
+ */
+function linkSliderAndInput(slider, numberInput, updateFn) {
+  const handleSliderInput = () => {
+    numberInput.value = slider.value;
+    resizeNumberInput(numberInput);
+    updateFn(parseFloat(slider.value));
+  };
+
+  const handleNumberInput = () => {
+    let val = parseFloat(numberInput.value);
+    if (isNaN(val)) return;
+
+    // Sync slider (range input will clamp it to min/max automatically)
+    slider.value = val;
+    
+    // Update width
+    resizeNumberInput(numberInput);
+    
+    // Update state with exact typed value
+    updateFn(val);
+  };
+
+  slider.addEventListener('input', handleSliderInput);
+  numberInput.addEventListener('input', handleNumberInput);
+  
+  // Initial resize
+  resizeNumberInput(numberInput);
+}
+
+/**
+ * Synchronizes all inputs (sliders and number inputs) with current state and layout values.
+ */
+function syncCustomizationInputs() {
+  if (physicsLayout) {
+    sliderAttraction.value = physicsLayout.kAttract;
+    inputAttraction.value = physicsLayout.kAttract;
+    resizeNumberInput(inputAttraction);
+
+    sliderRepulsion.value = physicsLayout.kRepel;
+    inputRepulsion.value = physicsLayout.kRepel;
+    resizeNumberInput(inputRepulsion);
+
+    sliderRestLength.value = physicsLayout.restLength;
+    inputRestLength.value = physicsLayout.restLength;
+    resizeNumberInput(inputRestLength);
+  }
+
+  sliderLabelSize.value = state.labelFontSize;
+  inputLabelSize.value = state.labelFontSize;
+  resizeNumberInput(inputLabelSize);
+
+  sliderVertexSize.value = state.vertexSize;
+  inputVertexSize.value = state.vertexSize;
+  resizeNumberInput(inputVertexSize);
+
+  sliderVertexOutlineWidth.value = state.vertexOutlineWidth;
+  inputVertexOutlineWidth.value = state.vertexOutlineWidth;
+  resizeNumberInput(inputVertexOutlineWidth);
+
+  sliderBoundaryScale.value = state.boundaryScale;
+  inputBoundaryScale.value = state.boundaryScale;
+  resizeNumberInput(inputBoundaryScale);
+
+  sliderBlobOpacity.value = state.blobOpacity;
+  inputBlobOpacity.value = state.blobOpacity;
+  resizeNumberInput(inputBlobOpacity);
+
+  sliderBlobOutlineWidth.value = state.blobOutlineWidth;
+  inputBlobOutlineWidth.value = state.blobOutlineWidth;
+  resizeNumberInput(inputBlobOutlineWidth);
+
+  sliderEdgeWidth.value = state.edgeWidth;
+  inputEdgeWidth.value = state.edgeWidth;
+  resizeNumberInput(inputEdgeWidth);
+
+  inputGridColor.value = state.gridColor;
+  sliderGridOpacity.value = state.gridOpacity;
+  inputGridOpacity.value = state.gridOpacity;
+  resizeNumberInput(inputGridOpacity);
+  gridCustomControls.style.display = state.showGrid ? 'flex' : 'none';
+  updateGridStyling();
+  updateLabelControlsVisibility();
+}
+
+/**
+ * Updates the background SVG grid pattern styling based on current state.
+ */
+function updateGridStyling() {
+  if (gridPatternPath) {
+    gridPatternPath.setAttribute('stroke', state.gridColor);
+    gridPatternPath.setAttribute('stroke-opacity', String(state.gridOpacity));
+  }
+}
+
+/**
+ * Updates the visibility of font family and font size customization controls
+ * based on whether the plot theme is set to minimal ('clean').
+ */
+function updateLabelControlsVisibility() {
+  const isMinimal = state.plotTheme === 'clean';
+  fontFamilyControlGroup.style.display = isMinimal ? 'none' : 'flex';
+  fontSizeSliderContainer.style.display = isMinimal ? 'none' : 'flex';
 }
 
 /**
@@ -1071,12 +1185,24 @@ function initEvents() {
     triggerLayoutRecompute(true);
   });
 
-  sliderAttraction.addEventListener('input', updatePhysicsParameters);
-  sliderRepulsion.addEventListener('input', updatePhysicsParameters);
-  sliderRestLength.addEventListener('input', updatePhysicsParameters);
+  linkSliderAndInput(sliderAttraction, inputAttraction, (val) => {
+    if (physicsLayout) physicsLayout.kAttract = val;
+    if (!state.physicsPlaying) draw();
+  });
+
+  linkSliderAndInput(sliderRepulsion, inputRepulsion, (val) => {
+    if (physicsLayout) physicsLayout.kRepel = val;
+    if (!state.physicsPlaying) draw();
+  });
+
+  linkSliderAndInput(sliderRestLength, inputRestLength, (val) => {
+    if (physicsLayout) physicsLayout.restLength = val;
+    if (!state.physicsPlaying) draw();
+  });
 
   selectTheme.addEventListener('change', (e) => {
     state.plotTheme = e.target.value;
+    updateLabelControlsVisibility();
     draw();
   });
 
@@ -1085,21 +1211,18 @@ function initEvents() {
     draw();
   });
 
-  sliderLabelSize.addEventListener('input', (e) => {
-    state.labelFontSize = parseInt(e.target.value);
-    valLabelSize.textContent = `${e.target.value}px`;
+  linkSliderAndInput(sliderLabelSize, inputLabelSize, (val) => {
+    state.labelFontSize = val;
     draw();
   });
 
-  sliderVertexSize.addEventListener('input', (e) => {
-    state.vertexSize = parseFloat(e.target.value);
-    valVertexSize.textContent = e.target.value;
+  linkSliderAndInput(sliderVertexSize, inputVertexSize, (val) => {
+    state.vertexSize = val;
     draw();
   });
 
-  sliderVertexOutlineWidth.addEventListener('input', (e) => {
-    state.vertexOutlineWidth = parseFloat(e.target.value);
-    valVertexOutlineWidth.textContent = `${parseFloat(e.target.value).toFixed(1)}px`;
+  linkSliderAndInput(sliderVertexOutlineWidth, inputVertexOutlineWidth, (val) => {
+    state.vertexOutlineWidth = val;
     draw();
   });
 
@@ -1120,6 +1243,17 @@ function initEvents() {
     if (gridRect) {
       gridRect.style.display = state.showGrid ? 'inline' : 'none';
     }
+    gridCustomControls.style.display = state.showGrid ? 'flex' : 'none';
+  });
+
+  inputGridColor.addEventListener('input', (e) => {
+    state.gridColor = e.target.value;
+    updateGridStyling();
+  });
+
+  linkSliderAndInput(sliderGridOpacity, inputGridOpacity, (val) => {
+    state.gridOpacity = val;
+    updateGridStyling();
   });
 
   switchPinOnDrag.addEventListener('change', (e) => {
@@ -1131,21 +1265,18 @@ function initEvents() {
     draw();
   });
 
-  sliderBoundaryScale.addEventListener('input', (e) => {
-    state.boundaryScale = parseFloat(e.target.value);
-    valBoundaryScale.textContent = parseFloat(e.target.value).toFixed(1);
+  linkSliderAndInput(sliderBoundaryScale, inputBoundaryScale, (val) => {
+    state.boundaryScale = val;
     draw();
   });
 
-  sliderBlobOpacity.addEventListener('input', (e) => {
-    state.blobOpacity = parseFloat(e.target.value);
-    valBlobOpacity.textContent = parseFloat(e.target.value).toFixed(2);
+  linkSliderAndInput(sliderBlobOpacity, inputBlobOpacity, (val) => {
+    state.blobOpacity = val;
     draw();
   });
 
-  sliderBlobOutlineWidth.addEventListener('input', (e) => {
-    state.blobOutlineWidth = parseFloat(e.target.value);
-    valBlobOutlineWidth.textContent = `${parseFloat(e.target.value).toFixed(1)}px`;
+  linkSliderAndInput(sliderBlobOutlineWidth, inputBlobOutlineWidth, (val) => {
+    state.blobOutlineWidth = val;
     draw();
   });
 
@@ -1155,9 +1286,8 @@ function initEvents() {
     draw();
   });
 
-  sliderEdgeWidth.addEventListener('input', (e) => {
-    state.edgeWidth = parseFloat(e.target.value);
-    valEdgeWidth.textContent = `${parseFloat(e.target.value).toFixed(1)}px`;
+  linkSliderAndInput(sliderEdgeWidth, inputEdgeWidth, (val) => {
+    state.edgeWidth = val;
     draw();
   });
 
@@ -1372,7 +1502,7 @@ function init() {
   });
   physicsLayout.fixedNodeIds = state.pinnedNodeIds;
 
-  updatePhysicsParameters();
+  syncCustomizationInputs();
   updateCanvasBackground();
   initEvents();
   loadDefaultGraph();

@@ -21,6 +21,16 @@
       </div>
 
       <div class="sidebar-content">
+        <!-- Actions -->
+        <section class="sidebar-section"
+          style="border-color:transparent; background:transparent; padding:0; margin-bottom: 4px;">
+          <div class="btn-group">
+            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export"
+              style="font-size:0.85rem; padding: 8px 10px;">Data</button>
+            <button class="btn btn-danger btn-sm" id="btn-clear-canvas"
+              style="font-size:0.85rem; padding: 8px 10px;">Clear</button>
+          </div>
+        </section>
 
 
 
@@ -30,13 +40,10 @@
             <span>Edit hypergraph</span>
           </div>
 
-          <div class="control-subgroup">
-            <div class="subgroup-title">Hyperedges</div>
-            <div class="list-container" id="hyperedges-list-container">
-              <!-- Dynamically populated list of hyperedges -->
-            </div>
-            <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="width: 100%;">+ Add hyperedge</button>
+          <div class="list-container" id="hyperedges-list-container" style="margin-bottom: 8px;">
+            <!-- Dynamically populated list of hyperedges -->
           </div>
+          <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="width: 100%;">+ Add hyperedge</button>
         </section>
 
         <!-- Layout Controls -->
@@ -77,25 +84,31 @@
             <div class="slider-container">
               <div class="slider-header">
                 <span>Attraction</span>
-                <span class="slider-val" id="val-attraction">0.04</span>
               </div>
-              <input type="range" id="slider-attraction" min="0.005" max="0.15" step="0.005" value="0.04">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-attraction" min="0.005" max="0.15" step="0.005" value="0.04">
+                <input type="number" id="input-attraction" step="0.005" class="slider-number-input">
+              </div>
             </div>
 
             <div class="slider-container">
               <div class="slider-header">
                 <span>Repulsion</span>
-                <span class="slider-val" id="val-repulsion">800</span>
               </div>
-              <input type="range" id="slider-repulsion" min="100" max="3000" step="50" value="800">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-repulsion" min="100" max="3000" step="50" value="800">
+                <input type="number" id="input-repulsion" step="50" class="slider-number-input">
+              </div>
             </div>
 
             <div class="slider-container">
               <div class="slider-header">
                 <span>Rest length</span>
-                <span class="slider-val" id="val-rest-length">60</span>
               </div>
-              <input type="range" id="slider-rest-length" min="20" max="250" step="5" value="60">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-rest-length" min="20" max="250" step="5" value="60">
+                <input type="number" id="input-rest-length" step="5" class="slider-number-input">
+              </div>
             </div>
           </div>
         </section>
@@ -103,7 +116,7 @@
         <!-- Theme / Style Options -->
         <section class="sidebar-section" id="styles-section">
           <div class="section-title">
-            <span>Figure customization</span>
+            <span>Styling</span>
           </div>
 
           <!-- Subgroup: Canvas & grid -->
@@ -122,11 +135,8 @@
                     <option value="custom" style="display:none;">Custom</option>
                   </select>
                 </div>
-                <div class="color-picker-wrapper"
-                  style="position: relative; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-surface);"
-                  title="Choose custom background color">
-                  <input type="color" id="input-canvas-bg-custom" value="#ffffff"
-                    style="position: absolute; top: -5px; left: -5px; width: 44px; height: 44px; padding: 0; border: none; cursor: pointer;">
+                <div class="color-picker-wrapper" title="Choose custom background color">
+                  <input type="color" id="input-canvas-bg-custom" value="#ffffff">
                 </div>
               </div>
             </div>
@@ -137,6 +147,25 @@
                 <input type="checkbox" id="switch-grid" checked>
                 <span class="slider-round"></span>
               </label>
+            </div>
+
+            <div id="grid-custom-controls" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <label for="input-grid-color" style="margin: 0;">Grid line color</label>
+                <div class="color-picker-wrapper" title="Choose grid line color">
+                  <input type="color" id="input-grid-color" value="#000000">
+                </div>
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Grid line opacity</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-grid-opacity" min="0.0" max="0.5" step="0.01" value="0.04">
+                  <input type="number" id="input-grid-opacity" step="0.01" class="slider-number-input">
+                </div>
+              </div>
             </div>
           </div>
 
@@ -155,7 +184,7 @@
               </div>
             </div>
 
-            <div class="control-group">
+            <div class="control-group" id="font-family-control-group">
               <label for="select-font-family">Label font family</label>
               <div class="select-wrapper">
                 <select id="select-font-family">
@@ -166,28 +195,34 @@
               </div>
             </div>
 
-            <div class="slider-container">
+            <div class="slider-container" id="font-size-slider-container">
               <div class="slider-header">
                 <span>Label font size</span>
-                <span class="slider-val" id="val-label-size">12px</span>
               </div>
-              <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
+                <input type="number" id="input-label-size" step="1" class="slider-number-input">
+              </div>
             </div>
 
             <div class="slider-container">
               <div class="slider-header">
                 <span>Vertex disk size</span>
-                <span class="slider-val" id="val-vertex-size">0.15</span>
               </div>
-              <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
+                <input type="number" id="input-vertex-size" step="0.01" class="slider-number-input">
+              </div>
             </div>
 
             <div class="slider-container">
               <div class="slider-header">
                 <span>Vertex outline width</span>
-                <span class="slider-val" id="val-vertex-outline-width">1.5px</span>
               </div>
-              <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+                <input type="number" id="input-vertex-outline-width" step="0.1" class="slider-number-input">
+              </div>
             </div>
           </div>
 
@@ -207,25 +242,31 @@
               <div class="slider-container" id="boundary-scale-container">
                 <div class="slider-header">
                   <span>Boundary padding (scale)</span>
-                  <span class="slider-val" id="val-boundary-scale">2.0</span>
                 </div>
-                <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
+                  <input type="number" id="input-boundary-scale" step="0.1" class="slider-number-input">
+                </div>
               </div>
 
               <div class="slider-container" id="blob-opacity-container">
                 <div class="slider-header">
                   <span>Blob fill opacity</span>
-                  <span class="slider-val" id="val-blob-opacity">0.18</span>
                 </div>
-                <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+                  <input type="number" id="input-blob-opacity" step="0.01" class="slider-number-input">
+                </div>
               </div>
 
               <div class="slider-container">
                 <div class="slider-header">
                   <span>Blob outline width</span>
-                  <span class="slider-val" id="val-blob-outline-width">1.5px</span>
                 </div>
-                <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+                  <input type="number" id="input-blob-outline-width" step="0.1" class="slider-number-input">
+                </div>
               </div>
             </div>
           </div>
@@ -246,18 +287,20 @@
               <div class="slider-container" id="edge-width-container">
                 <div class="slider-header">
                   <span>Edge line width</span>
-                  <span class="slider-val" id="val-edge-width">2.0px</span>
                 </div>
-                <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+                  <input type="number" id="input-edge-width" step="0.1" class="slider-number-input">
+                </div>
               </div>
-            </div>
 
-            <div class="toggle-group" id="toggle-hubs-group">
-              <span class="toggle-label">Show control points</span>
-              <label class="switch" for="switch-hubs">
-                <input type="checkbox" id="switch-hubs">
-                <span class="slider-round"></span>
-              </label>
+              <div class="toggle-group" id="toggle-hubs-group">
+                <span class="toggle-label">Show control points</span>
+                <label class="switch" for="switch-hubs">
+                  <input type="checkbox" id="switch-hubs">
+                  <span class="slider-round"></span>
+                </label>
+              </div>
             </div>
 
             <div class="control-group">
@@ -287,17 +330,7 @@
             Dazeley-Gaist, P. (2026). Hypergraph Plotter [Software].</div>
         </section>
 
-        <!-- Actions -->
-        <section class="sidebar-section" style="border-color:transparent; background:transparent; padding:0;">
-          <div class="btn-group-3" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export"
-              style="font-size:0.8rem; padding: 6px 4px;">Data</button>
-            <button class="btn btn-primary btn-sm" id="btn-export-svg"
-              style="font-size:0.8rem; padding: 6px 4px;">Export SVG</button>
-            <button class="btn btn-danger btn-sm" id="btn-clear-canvas"
-              style="font-size:0.8rem; padding: 6px 4px;">Clear</button>
-          </div>
-        </section>
+
 
       </div>
     </aside>
@@ -333,7 +366,8 @@
       <svg id="hypergraph-canvas">
         <defs>
           <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0, 0, 0, 0.04)" stroke-width="1" />
+            <path id="grid-pattern-path" d="M 40 0 L 0 0 0 40" fill="none" stroke="#000000" stroke-opacity="0.04"
+              stroke-width="1" />
           </pattern>
         </defs>
 
@@ -362,26 +396,30 @@
 
     <!-- Import / Export Modal Overlay -->
     <div class="modal-overlay" id="modal-import-export-overlay">
-      <div class="modal" style="width: 480px;">
+      <div class="modal" style="width: 500px;">
         <div class="modal-header">
           <h3>Import / export hypergraph</h3>
           <button class="modal-close" id="btn-modal-close">&times;</button>
         </div>
-        <div class="modal-body" style="gap: 12px;">
+        <div class="modal-body" style="gap: 12px; padding: 20px 20px 14px 20px;">
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px;">
             Paste a hyperedge list in the following format (e.g. <code>{{1, 2, 3}, {2, 3, 5}}</code>):
           </p>
-          <textarea id="modal-textarea" placeholder="Paste data here..." style="height: 120px;"></textarea>
+          <textarea id="modal-textarea" placeholder="Paste data here..." style="height: 130px;"></textarea>
           <div class="import-error" id="import-error-msg" style="margin-top: 0; display: none;">Failed to parse input
             data. Please verify the format.</div>
-          <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-            <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram" style="min-width: 120px; height: 34px;">Copy
-              Wolfram</button>
-            <button class="btn btn-secondary btn-sm" id="btn-copy-json" style="min-width: 100px; height: 34px;">Copy
-              JSON</button>
-            <button class="btn btn-primary btn-sm" id="btn-import-data"
-              style="margin-left: auto; min-width: 80px; height: 34px;">Import</button>
+        </div>
+        <div class="modal-footer">
+          <div style="display: flex; gap: 6px; margin-right: auto;">
+            <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram"
+              style="font-size: 0.8rem; padding: 6px 10px;">Copy Wolfram</button>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-json"
+              style="font-size: 0.8rem; padding: 6px 10px;">Copy JSON</button>
+            <button class="btn btn-secondary btn-sm" id="btn-export-svg"
+              style="font-size: 0.8rem; padding: 6px 10px;">Export SVG</button>
           </div>
+          <button class="btn btn-primary btn-sm" id="btn-import-data"
+            style="font-size: 0.8rem; padding: 6px 14px; min-width: 70px;">Import</button>
         </div>
       </div>
     </div>
