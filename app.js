@@ -157,8 +157,8 @@ function getPaletteColor(index, total, palette) {
       return `hsl(${hue}, 85%, 50%)`;
     }
     case 'warm-sunset': {
-      const hue = 10 + ratio * 300;
-      return `hsl(${hue}, 85%, 50%)`;
+      const hue = (330 + ratio * 90) % 360;
+      return `hsl(${Math.round(hue)}, 90%, 50%)`;
     }
     case 'ocean-breeze': {
       const hue = 160 + ratio * 100;
@@ -171,6 +171,196 @@ function getPaletteColor(index, total, palette) {
     case 'neon-glow': {
       const hue = (index * 137.5) % 360;
       return `hsl(${hue}, 100%, 50%)`;
+    }
+    case 'viridis': {
+      const hue = 280 - ratio * 220;
+      const lightness = 35 + ratio * 15;
+      return `hsl(${hue}, 85%, ${lightness}%)`;
+    }
+    case 'plasma': {
+      const hue = (240 + ratio * 170) % 360;
+      const lightness = 40 + ratio * 15;
+      return `hsl(${hue}, 85%, ${lightness}%)`;
+    }
+    case 'cividis': {
+      const hue = 225 - ratio * 165;
+      const saturation = 60 - Math.sin(ratio * Math.PI) * 45;
+      const lightness = 30 + ratio * 35;
+      return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+    case 'magma': {
+      // Magma: purple -> pink -> orange -> yellow
+      let h, s, l;
+      if (ratio < 0.3) {
+        const t = ratio / 0.3;
+        h = 260 + t * 40; // 260 to 300
+        s = 60 + t * 10;  // 60% to 70%
+        l = 15 + t * 20;  // 15% to 35%
+      } else if (ratio < 0.6) {
+        const t = (ratio - 0.3) / 0.3;
+        h = 300 + t * 40; // 300 to 340
+        s = 70 + t * 15;  // 70% to 85%
+        l = 35 + t * 15;  // 35% to 50%
+      } else if (ratio < 0.9) {
+        const t = (ratio - 0.6) / 0.3;
+        h = 340 + t * 40; // 340 to 380 (20)
+        s = 85 + t * 10;  // 85% to 95%
+        l = 50 + t * 10;  // 50% to 60%
+      } else {
+        const t = (ratio - 0.9) / 0.1;
+        h = 20 + t * 30;  // 20 to 50
+        s = 95 + t * 5;   // 95% to 100%
+        l = 60 + t * 15;  // 60% to 75%
+      }
+      return `hsl(${Math.round(h) % 360}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+    }
+    case 'inferno': {
+      // Inferno: dark purple -> red -> orange -> yellow
+      let h, s, l;
+      if (ratio < 0.3) {
+        const t = ratio / 0.3;
+        h = 260 + t * 80; // 260 to 340
+        s = 70 + t * 15;  // 70% to 85%
+        l = 12 + t * 18;  // 12% to 30%
+      } else if (ratio < 0.6) {
+        const t = (ratio - 0.3) / 0.3;
+        h = 340 + t * 35; // 340 to 375 (15)
+        s = 85 + t * 10;  // 85% to 95%
+        l = 30 + t * 20;  // 30% to 50%
+      } else if (ratio < 0.9) {
+        const t = (ratio - 0.6) / 0.3;
+        h = 15 + t * 30;  // 15 to 45
+        s = 95 + t * 5;   // 95% to 100%
+        l = 50 + t * 15;  // 50% to 65%
+      } else {
+        const t = (ratio - 0.9) / 0.1;
+        h = 45 + t * 15;  // 45 to 60
+        s = 100;
+        l = 65 + t * 15;  // 65% to 80%
+      }
+      return `hsl(${Math.round(h) % 360}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+    }
+    case 'cyberpunk': {
+      const colors = [
+        'hsl(320, 100%, 50%)', // Neon Pink
+        'hsl(180, 100%, 45%)', // Neon Cyan
+        'hsl(280, 100%, 50%)', // Neon Purple
+        'hsl(45, 100%, 50%)',  // Neon Yellow
+        'hsl(210, 100%, 50%)'  // Electric Blue
+      ];
+      return colors[index % colors.length];
+    }
+    case 'aurora': {
+      const colors = [
+        'hsl(150, 80%, 40%)', // Emerald
+        'hsl(175, 75%, 45%)', // Mint / Teal
+        'hsl(195, 85%, 40%)', // Deep Teal
+        'hsl(230, 80%, 50%)', // Royal Blue
+        'hsl(275, 75%, 45%)', // Purple
+        'hsl(295, 80%, 50%)'  // Magenta/Violet
+      ];
+      return colors[index % colors.length];
+    }
+    case 'desert-sand': {
+      const colors = [
+        'hsl(20, 55%, 45%)',  // Terracotta
+        'hsl(35, 60%, 40%)',  // Ochre / Gold
+        'hsl(12, 50%, 35%)',  // Rust
+        'hsl(140, 20%, 40%)', // Sage
+        'hsl(45, 40%, 55%)',  // Sand
+        'hsl(330, 30%, 45%)'  // Muted Rose
+      ];
+      return colors[index % colors.length];
+    }
+    case 'botanical': {
+      const colors = [
+        'hsl(130, 30%, 35%)', // Forest green
+        'hsl(85, 35%, 40%)',  // Olive green
+        'hsl(160, 25%, 42%)', // Sage / Eucalyptus
+        'hsl(110, 20%, 45%)', // Moss
+        'hsl(40, 30%, 50%)',  // Muted Gold
+        'hsl(200, 20%, 45%)'  // Slate Blue
+      ];
+      return colors[index % colors.length];
+    }
+    case 'berry-wine': {
+      const colors = [
+        'hsl(340, 65%, 35%)', // Cranberry
+        'hsl(310, 50%, 30%)', // Plum
+        'hsl(355, 60%, 45%)', // Raspberry
+        'hsl(280, 45%, 40%)', // Mulberry
+        'hsl(325, 55%, 45%)', // Deep Rose
+        'hsl(250, 40%, 40%)'  // Boysenberry
+      ];
+      return colors[index % colors.length];
+    }
+    case 'academic-bold': {
+      const colors = [
+        'hsl(350, 75%, 45%)', // Crimson
+        'hsl(217, 85%, 45%)', // Navy
+        'hsl(152, 70%, 35%)', // Emerald
+        'hsl(35, 85%, 40%)',  // Amber
+        'hsl(270, 70%, 45%)', // Violet
+        'hsl(190, 85%, 35%)'  // Teal
+      ];
+      return colors[index % colors.length];
+    }
+    case 'academic-set1': {
+      const colors = [
+        'hsl(359, 79%, 50%)',  // Red
+        'hsl(207, 54%, 47%)',  // Blue
+        'hsl(118, 41%, 49%)',  // Green
+        'hsl(292, 35%, 47%)',  // Purple
+        'hsl(30, 100%, 50%)',  // Orange
+        'hsl(60, 100%, 40%)',  // Dark Yellow
+        'hsl(22, 61%, 40%)',   // Brown
+        'hsl(329, 87%, 74%)',  // Pink
+        'hsl(0, 0%, 60%)'      // Grey
+      ];
+      return colors[index % colors.length];
+    }
+    case 'academic-set2': {
+      const colors = [
+        'hsl(161, 44%, 58%)',  // Teal-green
+        'hsl(17, 97%, 69%)',   // Orange
+        'hsl(222, 38%, 67%)',  // Blue-grey
+        'hsl(323, 62%, 72%)',  // Pink
+        'hsl(83, 62%, 59%)',   // Light green
+        'hsl(49, 100%, 59%)',  // Yellow
+        'hsl(35, 62%, 74%)',   // Mauve
+        'hsl(0, 0%, 70%)'      // Grey
+      ];
+      return colors[index % colors.length];
+    }
+    case 'academic-dark': {
+      const colors = [
+        'hsl(162, 71%, 36%)',  // Teal-green
+        'hsl(26, 98%, 43%)',   // Orange
+        'hsl(245, 31%, 57%)',  // Purple
+        'hsl(329, 80%, 53%)',  // Pink
+        'hsl(88, 69%, 38%)',   // Lime-olive
+        'hsl(44, 98%, 45%)',   // Yellow-gold
+        'hsl(39, 70%, 38%)',   // Brown
+        'hsl(0, 0%, 40%)'      // Dark Grey
+      ];
+      return colors[index % colors.length];
+    }
+    case 'academic-paired': {
+      const colors = [
+        'hsl(201, 53%, 77%)',  // Light Blue
+        'hsl(204, 70%, 41%)',  // Dark Blue
+        'hsl(90, 56%, 71%)',   // Light Green
+        'hsl(116, 56%, 40%)',  // Dark Green
+        'hsl(0, 91%, 79%)',    // Light Red
+        'hsl(359, 79%, 50%)',  // Dark Red
+        'hsl(34, 98%, 71%)',   // Light Orange
+        'hsl(30, 100%, 50%)',  // Dark Orange
+        'hsl(281, 28%, 77%)',  // Light Purple
+        'hsl(269, 43%, 42%)',  // Dark Purple
+        'hsl(60, 100%, 80%)',  // Light Yellow
+        'hsl(21, 63%, 42%)'    // Dark Brown
+      ];
+      return colors[index % colors.length];
     }
     case 'custom-solid': {
       return state.edgeColorCustom || '#3b82f6';
