@@ -44,11 +44,11 @@ export class HypergraphPlotter {
       initialZoom: null,
 
       // Force-directed layout physics parameters
-      kAttract: 0.07,
-      kRepel: 2400,
+      kAttract: 0.2,
+      kRepel: 10000,
       kCenter: 0.004,
-      restLength: 35,
-      componentSpacing: 180,
+      restLength: 0,
+      componentSpacing: 90,
       damping: 0.88,
       maxSpeed: 10,
       ...options

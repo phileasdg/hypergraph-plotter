@@ -10,11 +10,11 @@ export class BipartiteForceLayout {
     this.height = options.height || 600;
     
     // Hypergraph physics coefficients
-    this.kAttract = options.kAttract !== undefined ? options.kAttract : 0.07;
-    this.kRepel = options.kRepel !== undefined ? options.kRepel : 2400;
+    this.kAttract = options.kAttract !== undefined ? options.kAttract : 0.2;
+    this.kRepel = options.kRepel !== undefined ? options.kRepel : 10000;
     this.kCenter = options.kCenter !== undefined ? options.kCenter : 0.004;
-    this.restLength = options.restLength !== undefined ? options.restLength : 35;
-    this.componentSpacing = options.componentSpacing !== undefined ? options.componentSpacing : 180;
+    this.restLength = options.restLength !== undefined ? options.restLength : 0;
+    this.componentSpacing = options.componentSpacing !== undefined ? options.componentSpacing : 90;
     this.damping = options.damping !== undefined ? options.damping : 0.88;
     this.maxSpeed = options.maxSpeed !== undefined ? options.maxSpeed : 10;
 
@@ -240,9 +240,6 @@ export class BipartiteForceLayout {
           // Standard repulsion within the same component
           force = this.kRepel / (d * d);
         } else {
-          // Repulsion between different components: skip virtual hubs to prevent feedback loops
-          if (n1.isHub || n2.isHub) continue;
-
           const goal = this.componentSpacing;
           if (goal <= 0) {
             // No repulsion at all if componentSpacing is 0

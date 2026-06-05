@@ -67,8 +67,8 @@
                 <span>Attraction</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-attraction" min="0.005" max="0.15" step="0.005" value="0.04">
-                <input type="number" id="input-attraction" step="0.005" class="slider-number-input">
+                <input type="range" id="slider-attraction" min="0.01" max="0.5" step="0.01" value="0.2">
+                <input type="number" id="input-attraction" step="0.01" class="slider-number-input">
               </div>
             </div>
 
@@ -77,8 +77,8 @@
                 <span>Repulsion</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-repulsion" min="100" max="3000" step="50" value="800">
-                <input type="number" id="input-repulsion" step="50" class="slider-number-input">
+                <input type="range" id="slider-repulsion" min="500" max="20000" step="500" value="10000">
+                <input type="number" id="input-repulsion" step="500" class="slider-number-input">
               </div>
             </div>
 
@@ -87,7 +87,7 @@
                 <span>Rest length</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-rest-length" min="20" max="250" step="5" value="60">
+                <input type="range" id="slider-rest-length" min="0" max="250" step="5" value="0">
                 <input type="number" id="input-rest-length" step="5" class="slider-number-input">
               </div>
             </div>
@@ -97,10 +97,11 @@
                 <span>Component spacing</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-component-spacing" min="50" max="500" step="10" value="180">
-                <input type="number" id="input-component-spacing" step="10" class="slider-number-input">
+                <input type="range" id="slider-component-spacing" min="0" max="500" step="5" value="90">
+                <input type="number" id="input-component-spacing" step="5" class="slider-number-input">
               </div>
             </div>
+
 
             <div class="toggle-group" id="toggle-pin-on-drag-group" style="margin-top: 4px;">
               <span class="toggle-label">Pin nodes when dragged</span>
