@@ -216,16 +216,6 @@ function updateHyperedgesList() {
       const id = parseInt(btn.getAttribute('data-edit-edge-id'));
       editingEdgeId = id;
       updateHyperedgesList();
-      
-      setTimeout(() => {
-        const input = document.querySelector(`[data-edit-input-id="${id}"]`);
-        if (input) {
-          input.focus();
-          const val = input.value;
-          input.value = '';
-          input.value = val;
-        }
-      }, 50);
     });
   });
 
@@ -275,6 +265,19 @@ function updateHyperedgesList() {
 
   // Update heights for CSS resizer variable
   hyperedgesListContainer.style.setProperty('--content-h', `${hyperedgesListContainer.scrollHeight}px`);
+
+  // Auto-focus the active input field if we are editing or adding an edge
+  if (editingEdgeId !== null) {
+    setTimeout(() => {
+      const input = document.querySelector(`[data-edit-input-id="${editingEdgeId}"]`);
+      if (input) {
+        input.focus();
+        const val = input.value;
+        input.value = '';
+        input.value = val;
+      }
+    }, 50);
+  }
 }
 
 /**

@@ -10,12 +10,12 @@ export class BipartiteForceLayout {
     this.height = options.height || 600;
     
     // Hypergraph physics coefficients
-    this.kAttract = options.kAttract !== undefined ? options.kAttract : 0.04;
-    this.kRepel = options.kRepel !== undefined ? options.kRepel : 800;
-    this.kCenter = options.kCenter !== undefined ? options.kCenter : 0.01;
-    this.restLength = options.restLength !== undefined ? options.restLength : 60;
-    this.damping = options.damping !== undefined ? options.damping : 0.85;
-    this.maxSpeed = options.maxSpeed !== undefined ? options.maxSpeed : 12;
+    this.kAttract = options.kAttract !== undefined ? options.kAttract : 0.07;
+    this.kRepel = options.kRepel !== undefined ? options.kRepel : 2400;
+    this.kCenter = options.kCenter !== undefined ? options.kCenter : 0.004;
+    this.restLength = options.restLength !== undefined ? options.restLength : 35;
+    this.damping = options.damping !== undefined ? options.damping : 0.88;
+    this.maxSpeed = options.maxSpeed !== undefined ? options.maxSpeed : 10;
 
     this.nodes = []; // All nodes (vertices + hubs)
     this.nodeMap = new Map(); // id -> node reference
@@ -45,7 +45,7 @@ export class BipartiteForceLayout {
       // New nodes spawn in a ring around centre — far enough to animate in visibly,
       // but within the layout canvas bounds so they are never clipped.
       const angle = Math.random() * 2 * Math.PI;
-      const radius = 100 + Math.random() * 30; // 100–130 px from centre
+      const radius = 130 + Math.random() * 40; // 130–170 px from centre
       const node = {
         id: v.id,
         isHub: false,
@@ -59,8 +59,9 @@ export class BipartiteForceLayout {
       this.nodeMap.set(v.id, node);
     });
 
-    // 2. Add Hyperedge Hubs
+    // 2. Add Hyperedge Hubs (Only for hyperedges containing more than one vertex)
     hyperedges.forEach(e => {
+      if (e.vertices.length <= 1) return;
       const hubId = `_hub_${e.id}`;
       const oldNode = oldNodeMap.get(hubId);
 

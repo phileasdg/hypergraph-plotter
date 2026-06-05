@@ -44,10 +44,10 @@ export class HypergraphPlotter {
       initialZoom: null,
 
       // Force-directed layout physics parameters
-      kAttract: 0.04,
-      kRepel: 800,
-      kCenter: 0.008,
-      restLength: 60,
+      kAttract: 0.07,
+      kRepel: 2400,
+      kCenter: 0.004,
+      restLength: 35,
       damping: 0.88,
       maxSpeed: 10,
       ...options
@@ -259,6 +259,12 @@ export class HypergraphPlotter {
         if (this.hasDragged && this.options.pinOnDrag) {
           this.pinnedNodeIds.add(this.draggedNodeId);
           this.draw();
+        } else if (!this.hasDragged) {
+          // Node was clicked, not dragged. Release it if it is currently locked.
+          if (this.pinnedNodeIds.has(this.draggedNodeId)) {
+            this.pinnedNodeIds.delete(this.draggedNodeId);
+            this.draw();
+          }
         }
         if (this.onNodeDragged) {
           this.onNodeDragged(this.draggedNodeId, 'end');
@@ -374,29 +380,33 @@ export class HypergraphPlotter {
       });
     }
 
-    // 2. Draw Subset Edges (Hub curves)
+    // 2. Draw Subset Edges (Hub curves or concentric circles for single node edges)
     if (this.options.showSubsetEdge) {
       this.hyperedges.forEach((edge, idx) => {
-        const hubNode = this.physicsLayout.nodeMap.get(`_hub_${edge.id}`);
-        if (!hubNode || edge.vertices.length < 1) return;
+        if (edge.vertices.length < 1) return;
 
         const edgeColor = edge.color || this.getPaletteColor(idx, this.hyperedges.length, palette);
 
         if (edge.vertices.length === 1) {
-          const vNode = this.physicsLayout.nodeMap.get(edge.vertices[0]);
-          if (!vNode) return;
-          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-          line.setAttribute('x1', String(vNode.x));
-          line.setAttribute('y1', String(vNode.y));
-          line.setAttribute('x2', String(hubNode.x));
-          line.setAttribute('y2', String(hubNode.y));
-          line.setAttribute('fill', 'none');
-          line.setAttribute('stroke', edgeColor);
-          line.setAttribute('stroke-width', `${this.options.edgeWidth * 0.75}px`);
-          line.setAttribute('stroke-dasharray', '3,3');
-          line.setAttribute('opacity', '0.6');
-          this.edgesLayer.appendChild(line);
+          // Render concentric line circle for single-node edge ONLY if boundary blobs are disabled.
+          // If boundary blobs are enabled, the blob itself already encloses the node cleanly,
+          // so rendering both would create an redundant double-ring (bullseye) target.
+          if (!this.options.showSubsetBoundary) {
+            const vNode = this.physicsLayout.nodeMap.get(edge.vertices[0]);
+            if (!vNode) return;
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', String(vNode.x));
+            circle.setAttribute('cy', String(vNode.y));
+            circle.setAttribute('r', String(vertexRadius * 1.5));
+            circle.setAttribute('fill', 'none');
+            circle.setAttribute('stroke', edgeColor);
+            circle.setAttribute('stroke-width', `${this.options.edgeWidth}px`);
+            circle.setAttribute('opacity', '0.85');
+            this.edgesLayer.appendChild(circle);
+          }
         } else {
+          const hubNode = this.physicsLayout.nodeMap.get(`_hub_${edge.id}`);
+          if (!hubNode) return;
           const v0 = this.physicsLayout.nodeMap.get(edge.vertices[0]);
           if (!v0) return;
 

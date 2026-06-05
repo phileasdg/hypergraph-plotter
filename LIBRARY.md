@@ -162,9 +162,9 @@ Configure layouts and styles by passing these keys in the options object or usin
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| **`kAttract`** | *Number* | `0.04` | Link attraction coefficient (spring stiffness). |
-| **`kRepel`** | *Number* | `800` | Inter-node repulsion coefficient. |
-| **`kCenter`** | *Number* | `0.01` | Center-of-gravity attraction coefficient. |
-| **`restLength`** | *Number* | `60` | Equilibrium rest length of spring link lines. |
-| **`damping`** | *Number* | `0.85` | Damping coefficient (velocity decay rate). |
-| **`maxSpeed`** | *Number* | `12` | Maximum speed limit of vertices per layout tick step. |
+| **`kAttract`** | *Number* | `0.07` | Link attraction coefficient (spring stiffness). |
+| **`kRepel`** | *Number* | `2400` | Inter-node repulsion coefficient. |
+| **`kCenter`** | *Number* | `0.004` | Center-of-gravity attraction coefficient. |
+| **`restLength`** | *Number* | `35` | Equilibrium rest length of spring link lines. |
+| **`damping`** | *Number* | `0.88` | Damping coefficient (velocity decay rate). |
+| **`maxSpeed`** | *Number* | `10` | Maximum speed limit of vertices per layout tick step. |
