@@ -100,8 +100,9 @@ Cancels the force animation frame loop.
 #### `recenter()`
 Translates the viewport to center the graph without altering the current zoom level.
 
-#### `zoomToFit()`
+#### `zoomToFit(padding = null)`
 Rescales the viewport zoom level and centers the view bounding box to fit all active nodes.
+- **`padding`**: Optional number override for boundary margins around the graph. If not provided, it defaults to a responsive padding equal to `Math.min(width * 0.33, height * 0.33)` (with a minimum limit of 40px) to keep the graph size comfortable inside the viewport.
 
 #### `getSVGString()`
 Returns a standalone, self-contained SVG string representing the current graph state. Visual styling is inlined as presentation attributes (making it perfect for direct file downloads or vector editing tools like Illustrator or Inkscape).

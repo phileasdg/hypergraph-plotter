@@ -42,12 +42,16 @@ export class BipartiteForceLayout {
     // 1. Add Vertices
     vertices.forEach(v => {
       const oldNode = oldNodeMap.get(v.id);
+      // New nodes spawn in a ring around centre — far enough to animate in visibly,
+      // but within the layout canvas bounds so they are never clipped.
+      const angle = Math.random() * 2 * Math.PI;
+      const radius = 100 + Math.random() * 30; // 100–130 px from centre
       const node = {
         id: v.id,
         isHub: false,
         label: v.label || String(v.id),
-        x: oldNode ? oldNode.x : centerX + (Math.random() - 0.5) * 100,
-        y: oldNode ? oldNode.y : centerY + (Math.random() - 0.5) * 100,
+        x: oldNode ? oldNode.x : centerX + Math.cos(angle) * radius,
+        y: oldNode ? oldNode.y : centerY + Math.sin(angle) * radius,
         vx: oldNode ? oldNode.vx : 0,
         vy: oldNode ? oldNode.vy : 0
       };

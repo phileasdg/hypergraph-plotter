@@ -394,11 +394,6 @@ function loadDefaultGraph() {
     vertices: defaultVertices,
     hyperedges: defaultEdges
   });
-  
-  // Center view on load
-  setTimeout(() => {
-    plotter.zoomToFit();
-  }, 100);
 }
 
 /**
@@ -817,19 +812,11 @@ function initControllerEvents() {
         hyperedges: importedEdges
       });
 
-      // Scatter vertices randomly around center on import
-      const w = canvasElement.clientWidth || 800;
-      const h = canvasElement.clientHeight || 600;
-      plotter.physicsLayout.nodes.forEach(node => {
-        node.x = w / 2 + (Math.random() - 0.5) * 200;
-        node.y = h / 2 + (Math.random() - 0.5) * 200;
-      });
-
       updateHyperedgesList();
       modalOverlay.classList.remove('active');
       setTimeout(() => {
         plotter.zoomToFit();
-      }, 100);
+      }, 150);
     } catch (err) {
       importErrorMsg.textContent = `Error parsing data: ${err.message}`;
       importErrorMsg.style.display = 'block';
@@ -853,7 +840,8 @@ function init() {
   // Instantiate the library class on the SVG container element
   plotter = new HypergraphPlotter(canvasElement, {
     width: w,
-    height: h
+    height: h,
+    initialZoom: 1.5
   });
 
   // Handle data-sync callback back to sidebar list

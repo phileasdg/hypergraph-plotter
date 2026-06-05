@@ -2,6 +2,11 @@
 
 An interactive, client-side visualizer and vector layout engine designed for mathematical hypergraphs. It is tailored to create high-contrast, clean, and publication-ready figures for academic papers, presentations, and network science research.
 
+### Quick Links
+- 🌐 **[Live Web Application](https://phileasdg.github.io/hypergraph-plotter/)**
+- 🧪 **[Interactive Library Demo](https://phileasdg.github.io/hypergraph-plotter/demo.html)**
+- 📖 **[Library API Documentation](LIBRARY.md)**
+
 ## Features
 - **Clean Academic Styling**: Professional light themes, customized outline widths, customizable font sizes, and color palettes optimized for scientific publications (including grayscale).
 - **Interactive Visualizations**: Dynamic force-directed spring layouts, circular layouts, grid layouts, and support for dragging nodes to customize layouts.
@@ -11,7 +16,9 @@ An interactive, client-side visualizer and vector layout engine designed for mat
 
 ## Developer library documentation
 
-If you are a programmer interested in using this hypergraph visualizer and layout engine programmatically in your own code or website, please see the [Library API Documentation](LIBRARY.md) for a quickstart guide, option lists, and code examples.
+If you are a programmer interested in using this hypergraph visualizer and layout engine programmatically in your own code or website:
+- Read the **[Library API Documentation](LIBRARY.md)** for a quickstart guide, configuration options, and integration examples.
+- Try the **[Live Interactive Demo](https://phileasdg.github.io/hypergraph-plotter/demo.html)** (source code: [demo.html](demo.html)) to see programmatic layout updates, event handling, and option changes.
 
 ## Citations & acknowledgments
 

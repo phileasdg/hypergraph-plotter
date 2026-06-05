@@ -39,14 +39,17 @@ export class HypergraphPlotter {
       gridOpacity: 0.04,
       physicsPlaying: true,
       pinOnDrag: true,
+      allowPan: true,
+      allowZoom: true,
+      initialZoom: null,
 
       // Force-directed layout physics parameters
       kAttract: 0.04,
       kRepel: 800,
-      kCenter: 0.01,
+      kCenter: 0.008,
       restLength: 60,
-      damping: 0.85,
-      maxSpeed: 12,
+      damping: 0.88,
+      maxSpeed: 10,
       ...options
     };
 
@@ -217,11 +220,13 @@ export class HypergraphPlotter {
         return;
       }
 
-      this.isPanning = true;
-      this.panStart = {
-        x: e.clientX - this.pan.x,
-        y: e.clientY - this.pan.y
-      };
+      if (this.options.allowPan) {
+        this.isPanning = true;
+        this.panStart = {
+          x: e.clientX - this.pan.x,
+          y: e.clientY - this.pan.y
+        };
+      }
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -242,7 +247,7 @@ export class HypergraphPlotter {
             this.onNodeDragged(this.draggedNodeId, 'drag', coords);
           }
         }
-      } else if (this.isPanning) {
+      } else if (this.isPanning && this.options.allowPan) {
         this.pan.x = e.clientX - this.panStart.x;
         this.pan.y = e.clientY - this.panStart.y;
         this.applyTransform();
@@ -269,6 +274,7 @@ export class HypergraphPlotter {
 
     this.svg.addEventListener('wheel', (e) => {
       e.preventDefault();
+      if (!this.options.allowZoom) return;
       const factor = e.deltaY < 0 ? 1.08 : 0.92;
       this.adjustZoom(factor, e.clientX, e.clientY);
     }, { passive: false });
@@ -504,15 +510,37 @@ export class HypergraphPlotter {
 
   /**
    * Sets the dataset (vertices & hyperedges) of the visualizer.
+   * Runs layout warmup ticks to settle nodes and centers the view by default.
    */
   setData(data) {
+    const isFirstLoad = this.vertices.length === 0;
     this.vertices = data.vertices || [];
     this.hyperedges = data.hyperedges || [];
 
     this.physicsLayout.setGraph(this.vertices, this.hyperedges);
 
-    if (this.options.layoutType !== 'spring-embedding') {
+    if (this.options.layoutType === 'spring-embedding') {
+      // A handful of ticks breaks exact spawn-point overlaps without
+      // pre-running the animation the user should see.
+      for (let i = 0; i < 3; i++) {
+        this.physicsLayout.tick();
+      }
+    } else {
       this._applyStaticLayout();
+    }
+
+    // Apply initialZoom only on the very first data load so the graph
+    // appears at a comfortable size without filling the whole viewport.
+    // Also set pan so the layout centre (width/2, height/2) lands on the
+    // screen centre — otherwise the graph starts in the top-left corner.
+    if (isFirstLoad && this.options.initialZoom != null) {
+      const svgRect = this.svg.getBoundingClientRect();
+      const screenW = svgRect.width  || this.options.width;
+      const screenH = svgRect.height || this.options.height;
+      this.zoom  = this.options.initialZoom;
+      this.pan.x = screenW / 2 - (this.physicsLayout.width  / 2) * this.zoom;
+      this.pan.y = screenH / 2 - (this.physicsLayout.height / 2) * this.zoom;
+      this.applyTransform();
     }
 
     if (this.onDataChanged) {
@@ -710,7 +738,7 @@ export class HypergraphPlotter {
   /**
    * Scales the view scale and centers the viewport to frame all layout nodes.
    */
-  zoomToFit() {
+  zoomToFit(padding = null) {
     if (this.vertices.length === 0) return;
 
     const svgRect = this.svg.getBoundingClientRect();
@@ -734,9 +762,10 @@ export class HypergraphPlotter {
 
     if (graphW <= 0 || graphH <= 0) return;
 
-    const padding = 80;
-    const scaleX = (width - padding * 2) / graphW;
-    const scaleY = (height - padding * 2) / graphH;
+    // Default to a clean, responsive padding to fit the viewport nicely
+    const finalPadding = padding !== null ? padding : Math.max(40, Math.min(width * 0.12, height * 0.12));
+    const scaleX = (width - finalPadding * 2) / graphW;
+    const scaleY = (height - finalPadding * 2) / graphH;
     const targetZoom = Math.max(0.1, Math.min(2.5, Math.min(scaleX, scaleY)));
 
     const graphCenterX = minX + graphW / 2;
