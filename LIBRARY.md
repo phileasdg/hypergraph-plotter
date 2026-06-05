@@ -163,7 +163,8 @@ Configure layouts and styles by passing these keys in the options object or usin
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | **`kAttract`** | *Number* | `0.2` | Link attraction coefficient (spring stiffness). |
-| **`kRepel`** | *Number* | `10000` | Inter-node repulsion coefficient. |
+| **`kRepel`** | *Number* | `10000` | Vertex-to-vertex repulsion coefficient. |
+| **`kHyperedgeRepel`** | *Number* | `10000` | Hyperedge-to-hyperedge (and hyperedge-to-vertex) repulsion coefficient. |
 | **`kCenter`** | *Number* | `0.004` | Center-of-gravity attraction coefficient. |
 | **`restLength`** | *Number* | `0` | Equilibrium rest length of spring link lines. |
 | **`componentSpacing`** | *Number* | `90` | Distance radius separating targets of disconnected connected components. |

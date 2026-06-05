@@ -12,6 +12,7 @@ export class BipartiteForceLayout {
     // Hypergraph physics coefficients
     this.kAttract = options.kAttract !== undefined ? options.kAttract : 0.2;
     this.kRepel = options.kRepel !== undefined ? options.kRepel : 10000;
+    this.kHyperedgeRepel = options.kHyperedgeRepel !== undefined ? options.kHyperedgeRepel : 10000;
     this.kCenter = options.kCenter !== undefined ? options.kCenter : 0.004;
     this.restLength = options.restLength !== undefined ? options.restLength : 0;
     this.componentSpacing = options.componentSpacing !== undefined ? options.componentSpacing : 90;
@@ -236,9 +237,16 @@ export class BipartiteForceLayout {
         }
 
         let force = 0;
+        let repelCoeff = this.kRepel;
+        if (n1.isHub && n2.isHub) {
+          repelCoeff = this.kHyperedgeRepel;
+        } else if (n1.isHub || n2.isHub) {
+          repelCoeff = (this.kRepel + this.kHyperedgeRepel) / 2;
+        }
+
         if (n1.componentId === n2.componentId) {
           // Standard repulsion within the same component
-          force = this.kRepel / (d * d);
+          force = repelCoeff / (d * d);
         } else {
           const goal = this.componentSpacing;
           if (goal <= 0) {
@@ -247,7 +255,11 @@ export class BipartiteForceLayout {
           }
           if (d < goal) {
             // Separation force pushes nodes from different components apart if closer than the goal
-            force = 0.25 * (goal - d);
+            let factor = 1.0;
+            if (this.kRepel > 0) {
+              factor = repelCoeff / this.kRepel;
+            }
+            force = 0.25 * factor * (goal - d);
           }
         }
 

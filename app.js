@@ -17,6 +17,8 @@ const sliderAttraction = document.getElementById('slider-attraction');
 const inputAttraction = document.getElementById('input-attraction');
 const sliderRepulsion = document.getElementById('slider-repulsion');
 const inputRepulsion = document.getElementById('input-repulsion');
+const sliderHyperedgeRepulsion = document.getElementById('slider-hyperedge-repulsion');
+const inputHyperedgeRepulsion = document.getElementById('input-hyperedge-repulsion');
 const sliderRestLength = document.getElementById('slider-rest-length');
 const inputRestLength = document.getElementById('input-rest-length');
 const sliderComponentSpacing = document.getElementById('slider-component-spacing');
@@ -464,6 +466,10 @@ function syncCustomizationInputs() {
   inputRepulsion.value = opt.kRepel;
   resizeNumberInput(inputRepulsion);
 
+  sliderHyperedgeRepulsion.value = opt.kHyperedgeRepel;
+  inputHyperedgeRepulsion.value = opt.kHyperedgeRepel;
+  resizeNumberInput(inputHyperedgeRepulsion);
+
   sliderRestLength.value = opt.restLength;
   inputRestLength.value = opt.restLength;
   resizeNumberInput(inputRestLength);
@@ -564,6 +570,7 @@ function initControllerEvents() {
   // Sync slider events
   linkSliderAndInput(sliderAttraction, inputAttraction, (val) => plotter.setOptions({ kAttract: val }));
   linkSliderAndInput(sliderRepulsion, inputRepulsion, (val) => plotter.setOptions({ kRepel: val }));
+  linkSliderAndInput(sliderHyperedgeRepulsion, inputHyperedgeRepulsion, (val) => plotter.setOptions({ kHyperedgeRepel: val }));
   linkSliderAndInput(sliderRestLength, inputRestLength, (val) => plotter.setOptions({ restLength: val }));
   linkSliderAndInput(sliderComponentSpacing, inputComponentSpacing, (val) => plotter.setOptions({ componentSpacing: val }));
   linkSliderAndInput(sliderLabelSize, inputLabelSize, (val) => plotter.setOptions({ labelFontSize: val }));

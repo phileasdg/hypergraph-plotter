@@ -46,6 +46,7 @@ export class HypergraphPlotter {
       // Force-directed layout physics parameters
       kAttract: 0.2,
       kRepel: 10000,
+      kHyperedgeRepel: 10000,
       kCenter: 0.004,
       restLength: 0,
       componentSpacing: 90,
@@ -185,6 +186,7 @@ export class HypergraphPlotter {
       height: this.svg.clientHeight || this.options.height,
       kAttract: this.options.kAttract,
       kRepel: this.options.kRepel,
+      kHyperedgeRepel: this.options.kHyperedgeRepel,
       kCenter: this.options.kCenter,
       restLength: this.options.restLength,
       componentSpacing: this.options.componentSpacing,
@@ -584,6 +586,7 @@ export class HypergraphPlotter {
     if (this.physicsLayout) {
       this.physicsLayout.kAttract = this.options.kAttract;
       this.physicsLayout.kRepel = this.options.kRepel;
+      this.physicsLayout.kHyperedgeRepel = this.options.kHyperedgeRepel;
       this.physicsLayout.kCenter = this.options.kCenter;
       this.physicsLayout.restLength = this.options.restLength;
       this.physicsLayout.componentSpacing = this.options.componentSpacing;
