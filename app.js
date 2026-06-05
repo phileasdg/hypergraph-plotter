@@ -27,6 +27,8 @@ const state = {
   vertexSize: 0.15,
   vertexOutlineWidth: 1.5,
   plotTheme: 'name-labeled', // name-labeled, detailed, clean
+  nodeFillType: 'automatic', // automatic, custom
+  nodeFillCustom: '#ffffff',
   labelFontFamily: 'sans-serif', // sans-serif, serif, monospace
   labelFontSize: 12,
   showSubsetBoundary: true,
@@ -36,8 +38,9 @@ const state = {
   showSubsetEdge: true,
   edgeWidth: 2.0,
   edgePalette: 'rainbow', // rainbow, grayscale, pastel, cool-ice
+  edgeColorCustom: '#3b82f6',
   showHubs: false, // Default to hidden for cleaner academic visual output
-  showGrid: true, // Show grid background by default
+  showGrid: false, // Show grid background by default
   gridColor: '#000000',
   gridOpacity: 0.04,
   physicsPlaying: true
@@ -79,6 +82,9 @@ const sliderVertexSize = document.getElementById('slider-vertex-size');
 const inputVertexSize = document.getElementById('input-vertex-size');
 const sliderVertexOutlineWidth = document.getElementById('slider-vertex-outline-width');
 const inputVertexOutlineWidth = document.getElementById('input-vertex-outline-width');
+const selectVertexFill = document.getElementById('select-vertex-fill');
+const inputVertexFillCustom = document.getElementById('input-vertex-fill-custom');
+const vertexFillCustomWrapper = document.getElementById('vertex-fill-custom-wrapper');
 
 const switchBoundary = document.getElementById('switch-boundary');
 const boundaryControlsSubgroup = document.getElementById('boundary-controls-subgroup');
@@ -95,6 +101,8 @@ const sliderEdgeWidth = document.getElementById('slider-edge-width');
 const inputEdgeWidth = document.getElementById('input-edge-width');
 
 const selectEdgeStyle = document.getElementById('select-edge-style');
+const edgeColorCustomWrapper = document.getElementById('edge-color-custom-wrapper');
+const inputEdgeColorCustom = document.getElementById('input-edge-color-custom');
 const switchHubs = document.getElementById('switch-hubs');
 const switchGrid = document.getElementById('switch-grid');
 const gridCustomControls = document.getElementById('grid-custom-controls');
@@ -148,12 +156,67 @@ function getPaletteColor(index, total, palette) {
       const hue = 180 + ratio * 90;
       return `hsl(${hue}, 85%, 50%)`;
     }
+    case 'warm-sunset': {
+      const hue = 10 + ratio * 300;
+      return `hsl(${hue}, 85%, 50%)`;
+    }
+    case 'ocean-breeze': {
+      const hue = 160 + ratio * 100;
+      return `hsl(${hue}, 85%, 45%)`;
+    }
+    case 'forest-earth': {
+      const hue = 80 + ratio * 60;
+      return `hsl(${hue}, 55%, 40%)`;
+    }
+    case 'neon-glow': {
+      const hue = (index * 137.5) % 360;
+      return `hsl(${hue}, 100%, 50%)`;
+    }
+    case 'custom-solid': {
+      return state.edgeColorCustom || '#3b82f6';
+    }
     case 'rainbow':
     default: {
       const hue = ratio * 280;
       return `hsl(${hue}, 85%, 45%)`;
     }
   }
+}
+
+/**
+ * Converts an HSL string to a Hex color string.
+ */
+function hslToHex(hsl) {
+  const matches = hsl.match(/hsl\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*\)/);
+  if (!matches) return '#000000';
+  let h = parseFloat(matches[1]);
+  let s = parseFloat(matches[2]) / 100;
+  let l = parseFloat(matches[3]) / 100;
+
+  let c = (1 - Math.abs(2 * l - 1)) * s;
+  let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+  let m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+  
+  let rHex = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+  let gHex = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+  let bHex = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+
+  return `#${rHex}${gHex}${bHex}`;
 }
 
 /**
@@ -383,7 +446,7 @@ function draw() {
   const isDarkCanvas = state.canvasBg === 'dark-slate' || (state.canvasBg === 'custom' && isDarkColor(state.canvasBgCustom));
   const labelColor = isDarkCanvas ? '#f8f9fa' : '#212529';
   const nodeStrokeColor = isDarkCanvas ? '#e9ecef' : '#212529';
-  const nodeFillColor = isDarkCanvas ? '#2c3036' : '#ffffff';
+  const nodeFillColor = state.nodeFillType === 'custom' ? state.nodeFillCustom : (isDarkCanvas ? '#2c3036' : '#ffffff');
 
   // Font mapping
   let fontFamilyStr = '"Outfit", sans-serif';
@@ -413,7 +476,7 @@ function draw() {
 
       if (!pathData) return;
 
-      const blobColor = getPaletteColor(idx, state.hyperedges.length, palette);
+      const blobColor = edge.color || getPaletteColor(idx, state.hyperedges.length, palette);
 
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', pathData);
@@ -437,7 +500,7 @@ function draw() {
       const hubNode = physicsLayout.nodeMap.get(`_hub_${edge.id}`);
       if (!hubNode || edge.vertices.length < 1) return;
 
-      const edgeColor = getPaletteColor(idx, state.hyperedges.length, palette);
+      const edgeColor = edge.color || getPaletteColor(idx, state.hyperedges.length, palette);
 
       if (edge.vertices.length === 1) {
         const vNode = physicsLayout.nodeMap.get(edge.vertices[0]);
@@ -480,7 +543,7 @@ function draw() {
       const hubNode = physicsLayout.nodeMap.get(`_hub_${edge.id}`);
       if (!hubNode) return;
 
-      const edgeColor = getPaletteColor(idx, state.hyperedges.length, palette);
+      const edgeColor = edge.color || getPaletteColor(idx, state.hyperedges.length, palette);
       const isHubPinned = state.pinnedNodeIds.has(hubNode.id);
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -586,7 +649,7 @@ function updateHyperedgesList() {
     const item = document.createElement('div');
     item.className = 'list-item';
 
-    const color = getPaletteColor(idx, state.hyperedges.length, state.edgePalette);
+    const color = edge.color || getPaletteColor(idx, state.hyperedges.length, state.edgePalette);
     const isEditing = state.editingEdgeId === edge.id;
 
     if (isEditing) {
@@ -597,7 +660,10 @@ function updateHyperedgesList() {
 
       item.innerHTML = `
         <div class="list-item-content">
-          <div class="item-color-pill" style="background-color: ${color}"></div>
+          <div class="item-color-pill-wrapper" style="position: relative; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; cursor: pointer;" title="Choose custom edge color">
+            <div class="item-color-pill" style="background-color: ${color}; width: 100%; height: 100%; border-radius: 2px;"></div>
+            <input type="color" class="edge-color-picker" data-edge-color-id="${edge.id}" value="${color.startsWith('hsl') ? hslToHex(color) : color}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
+          </div>
           <input type="text" class="list-item-edit-input" data-edit-input-id="${edge.id}" value="${rawVerticesString}">
         </div>
         <div class="list-item-actions">
@@ -613,10 +679,14 @@ function updateHyperedgesList() {
 
       item.innerHTML = `
         <div class="list-item-content">
-          <div class="item-color-pill" style="background-color: ${color}"></div>
+          <div class="item-color-pill-wrapper" style="position: relative; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; cursor: pointer;" title="Choose custom edge color">
+            <div class="item-color-pill" style="background-color: ${color}; width: 100%; height: 100%; border-radius: 2px;"></div>
+            <input type="color" class="edge-color-picker" data-edge-color-id="${edge.id}" value="${color.startsWith('hsl') ? hslToHex(color) : color}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
+          </div>
           <span class="item-text">${labelString}</span>
         </div>
         <div class="list-item-actions">
+          ${edge.color ? `<button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-reset-edge-color-id="${edge.id}" title="Reset to palette color">↺</button>` : ''}
           <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-edit-edge-id="${edge.id}">✎</button>
           <button class="btn btn-danger btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-del-edge-id="${edge.id}">✕</button>
         </div>
@@ -630,6 +700,32 @@ function updateHyperedgesList() {
     btn.addEventListener('click', (e) => {
       const id = parseInt(btn.getAttribute('data-del-edge-id'));
       removeHyperedge(id);
+    });
+  });
+
+  // Attach edge color picker listeners
+  document.querySelectorAll('.edge-color-picker').forEach(picker => {
+    picker.addEventListener('change', (e) => {
+      const id = parseInt(picker.getAttribute('data-edge-color-id'));
+      const edge = state.hyperedges.find(e => e.id === id);
+      if (edge) {
+        edge.color = e.target.value;
+        updateHyperedgesList();
+        draw();
+      }
+    });
+  });
+
+  // Attach reset color listeners
+  document.querySelectorAll('[data-reset-edge-color-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.getAttribute('data-reset-edge-color-id'));
+      const edge = state.hyperedges.find(e => e.id === id);
+      if (edge) {
+        delete edge.color;
+        updateHyperedgesList();
+        draw();
+      }
     });
   });
 
@@ -791,6 +887,21 @@ function syncCustomizationInputs() {
   inputGridOpacity.value = state.gridOpacity;
   resizeNumberInput(inputGridOpacity);
   gridCustomControls.style.display = state.showGrid ? 'flex' : 'none';
+  const gridRect = document.getElementById('grid-rect');
+  if (gridRect) {
+    gridRect.style.display = state.showGrid ? 'inline' : 'none';
+  }
+
+  // Sync custom node fill controls
+  selectVertexFill.value = state.nodeFillType;
+  inputVertexFillCustom.value = state.nodeFillCustom;
+  vertexFillCustomWrapper.style.display = state.nodeFillType === 'custom' ? 'inline-flex' : 'none';
+
+  // Sync custom solid edge controls
+  selectEdgeStyle.value = state.edgePalette;
+  inputEdgeColorCustom.value = state.edgeColorCustom;
+  edgeColorCustomWrapper.style.display = state.edgePalette === 'custom-solid' ? 'inline-flex' : 'none';
+
   updateGridStyling();
   updateLabelControlsVisibility();
 }
@@ -1226,6 +1337,17 @@ function initEvents() {
     draw();
   });
 
+  selectVertexFill.addEventListener('change', (e) => {
+    state.nodeFillType = e.target.value;
+    vertexFillCustomWrapper.style.display = state.nodeFillType === 'custom' ? 'inline-flex' : 'none';
+    draw();
+  });
+
+  inputVertexFillCustom.addEventListener('input', (e) => {
+    state.nodeFillCustom = e.target.value;
+    draw();
+  });
+
   switchBoundary.addEventListener('change', (e) => {
     state.showSubsetBoundary = e.target.checked;
     boundaryControlsSubgroup.style.display = state.showSubsetBoundary ? 'flex' : 'none';
@@ -1293,6 +1415,13 @@ function initEvents() {
 
   selectEdgeStyle.addEventListener('change', (e) => {
     state.edgePalette = e.target.value;
+    edgeColorCustomWrapper.style.display = state.edgePalette === 'custom-solid' ? 'inline-flex' : 'none';
+    updateHyperedgesList();
+    draw();
+  });
+
+  inputEdgeColorCustom.addEventListener('input', (e) => {
+    state.edgeColorCustom = e.target.value;
     updateHyperedgesList();
     draw();
   });

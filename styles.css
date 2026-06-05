@@ -703,13 +703,18 @@ svg {
 
 /* Control subgroups for visual hierarchy and structure */
 .control-subgroup {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 12px;
-  background-color: var(--bg-base);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+}
+
+.control-subgroup:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 .subgroup-title {
@@ -718,9 +723,7 @@ svg {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 4px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 /* Slider Number Inputs styling */
