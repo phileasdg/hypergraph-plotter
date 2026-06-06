@@ -514,10 +514,10 @@ function syncCustomizationInputs() {
   selectFontFamily.value = opt.labelFontFamily;
   selectVertexFill.value = opt.nodeFillType;
   inputVertexFillCustom.value = opt.nodeFillCustom;
-  switchBoundary.value = opt.showSubsetBoundary;
-  switchEdge.value = opt.showSubsetEdge;
-  switchHubs.value = opt.showHubs;
-  switchGrid.value = opt.showGrid;
+  switchBoundary.checked = opt.showSubsetBoundary;
+  switchEdge.checked = opt.showSubsetEdge;
+  switchHubs.checked = opt.showHubs;
+  switchGrid.checked = opt.showGrid;
   inputGridColor.value = opt.gridColor;
   sliderGridOpacity.value = opt.gridOpacity;
   inputGridOpacity.value = opt.gridOpacity;
@@ -646,7 +646,12 @@ function initControllerEvents() {
   switchGrid.addEventListener('change', (e) => {
     const val = e.target.checked;
     gridCustomControls.style.display = val ? 'flex' : 'none';
-    plotter.setOptions({ showGrid: val });
+    if (val) {
+      plotter.setOptions({ showGrid: val, gridOpacity: 0.1 });
+      syncCustomizationInputs();
+    } else {
+      plotter.setOptions({ showGrid: val });
+    }
   });
 
   inputGridColor.addEventListener('input', (e) => {
