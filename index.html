@@ -429,7 +429,7 @@
         </div>
         <div class="modal-body" style="gap: 12px; padding: 20px 20px 14px 20px;">
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 2px;">
-            Paste a hyperedge list in the following format (e.g. <code>{{1, 2, 3}, {2, 3, 5}}</code>):
+            Paste a hyperedge list in Wolfram format (e.g. <code>{{1, 2}, {3, 4}}</code>), Python format (e.g. <code>[[1, 2], [3, 4]]</code>), or JSON:
           </p>
           <textarea id="modal-textarea" placeholder="Paste data here..." style="height: 130px;"></textarea>
           <div class="import-error" id="import-error-msg" style="margin-top: 0; display: none;">Failed to parse input
@@ -439,6 +439,8 @@
           <div style="display: flex; gap: 6px; margin-right: auto;">
             <button class="btn btn-secondary btn-sm" id="btn-copy-wolfram"
               style="font-size: 0.8rem; padding: 6px 10px;">Copy Wolfram</button>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-python"
+              style="font-size: 0.8rem; padding: 6px 10px;">Copy Python</button>
             <button class="btn btn-secondary btn-sm" id="btn-copy-json"
               style="font-size: 0.8rem; padding: 6px 10px;">Copy JSON</button>
             <button class="btn btn-secondary btn-sm" id="btn-export-svg"

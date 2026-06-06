@@ -2,7 +2,7 @@
 
 Here is a list of long-term goals and features planned for the Hypergraph Plotter:
 
-## 1. Programmable JS library
+## 1. Programmable JS library (Done & npm-ready)
 - Package the visualizer and layout algorithms (`geom.js`, `layout.js`, rendering logic) as a standalone JavaScript/npm library.
 - Allow developers to programmatically import, configure, and render hypergraph layouts onto a custom DOM element/SVG container without needing the graphical website environment.
 - Expose clear API methods for loading data, running layout iterations, adjusting themes, and triggering vector exports programmatically.
@@ -22,3 +22,12 @@ Here is a list of long-term goals and features planned for the Hypergraph Plotte
 - Introduce an advanced settings panel or custom JSON schema option allowing users to specify the exact coordinates `(x, y)` of every node.
 - Allow scientific researchers to lock positions to pre-computed coordinate grids or layouts generated in external environments (e.g. Mathematica, NetworkX, R).
 - Provide a coordinate text table editor in the UI to inspect, copy, and edit exact position values programmatically.
+
+## 5. Mobile optimization
+- Adapt the web app to work well on mobile.
+
+## 6. Multilayer visualization
+- Add an option to visualize a hypergraph as a multilayer, where each layer contains hyperedges of a given order.
+
+## 7. Hyperedge labeling
+- Add the option to name hyperedges, and show hyperedge labels.

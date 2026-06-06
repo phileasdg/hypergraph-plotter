@@ -1,6 +1,6 @@
 # Hypergraph Plotter
 
-An interactive, client-side visualizer and vector layout engine designed for mathematical hypergraphs. It is tailored to create high-contrast, clean, and publication-ready figures for academic papers, presentations, and network science research.
+A simple, interactive, client-side hypergraph visualizer and vector layout engine. This tool is designed to create high-contrast, clean, and publication-ready figures for academic papers, presentations, and network science research.
 
 ### Quick Links
 - 🌐 **[Live Web Application](https://phileasdg.github.io/hypergraph-plotter/)**
@@ -8,11 +8,10 @@ An interactive, client-side visualizer and vector layout engine designed for mat
 - 📖 **[Library API Documentation](LIBRARY.md)**
 
 ## Features
-- **Clean Academic Styling**: Professional light themes, customized outline widths, customizable font sizes, and color palettes optimized for scientific publications (including grayscale).
-- **Interactive Visualizations**: Dynamic force-directed spring layouts, circular layouts, grid layouts, and support for dragging nodes to customize layouts.
-- **Robust Boundary Generation**: High-fidelity convex hull and Minkowski-sum rounded boundaries (blobs) and hub curves for subset representations.
-- **Exporting Options**: Standalone, self-contained SVG vector graphics export with inlined presentation attributes.
-- **Data Portability**: Import/Export in JSON and Wolfram Language list formats.
+- **Clean Academic Styling**: Professional layout and theming, customized outline widths, customizable font sizes, and color palettes for publications.
+- **Layout Algorithms**: Dynamic force-directed spring layouts, circular layouts, grid layouts, and support for dragging nodes to customize layouts.
+- **Hyperedge Representation**: Convex hull and Minkowski-sum rounded boundaries (blobs) and hub curves for hyperedge representations.
+- **Data Portability**: Import from Wolfram Language or Python hyperedge lists. Export in JSON, Wolfram Language, and SVG formats.
 
 ## Developer library documentation
 

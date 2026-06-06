@@ -1,0 +1,37 @@
+{
+  "name": "hypergraph-plotter",
+  "version": "1.0.0",
+  "description": "An interactive, client-side visualizer and vector layout engine designed for mathematical hypergraphs.",
+  "type": "module",
+  "main": "hypergraph-plotter.js",
+  "exports": {
+    ".": "./hypergraph-plotter.js"
+  },
+  "files": [
+    "hypergraph-plotter.js",
+    "layout.js",
+    "geom.js",
+    "LIBRARY.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phileasdg/hypergraph-plotter.git"
+  },
+  "keywords": [
+    "hypergraph",
+    "visualization",
+    "layout-engine",
+    "force-directed",
+    "mathematics",
+    "graph-theory",
+    "vector-graphics",
+    "svg"
+  ],
+  "author": "Phileas Dazeley-Gaist",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/phileasdg/hypergraph-plotter/issues"
+  },
+  "homepage": "https://github.com/phileasdg/hypergraph-plotter#readme"
+}

@@ -82,6 +82,7 @@ const btnModalClose = document.getElementById('btn-modal-close');
 const modalTextarea = document.getElementById('modal-textarea');
 const importErrorMsg = document.getElementById('import-error-msg');
 const btnCopyWolfram = document.getElementById('btn-copy-wolfram');
+const btnCopyPython = document.getElementById('btn-copy-python');
 const btnCopyJson = document.getElementById('btn-copy-json');
 const btnImportData = document.getElementById('btn-import-data');
 
@@ -119,6 +120,21 @@ function serializeToWolfram() {
     }).join(', ') + '}';
   });
   return '{' + edgeStrings.join(', ') + '}';
+}
+
+/**
+ * Serializes the current graph data to Python list of lists format.
+ */
+function serializeToPython() {
+  const edgeStrings = plotter.hyperedges.map(edge => {
+    return '[' + edge.vertices.map(vId => {
+      const vNode = plotter.vertices.find(v => v.id === vId);
+      const label = vNode ? vNode.label : vId;
+      if (/^[0-9]+$/.test(label)) return label;
+      return `"${label.replace(/"/g, '\\"')}"`;
+    }).join(', ') + ']';
+  });
+  return '[' + edgeStrings.join(', ') + ']';
 }
 
 /**
@@ -752,6 +768,21 @@ function initControllerEvents() {
     });
   });
 
+  btnCopyPython.addEventListener('click', () => {
+    const content = serializeToPython();
+    navigator.clipboard.writeText(content).then(() => {
+      const origText = btnCopyPython.textContent;
+      btnCopyPython.textContent = 'Copied!';
+      btnCopyPython.style.backgroundColor = 'var(--success-color, #10b981)';
+      btnCopyPython.style.color = '#ffffff';
+      setTimeout(() => {
+        btnCopyPython.textContent = origText;
+        btnCopyPython.style.backgroundColor = '';
+        btnCopyPython.style.color = '';
+      }, 1500);
+    });
+  });
+
   btnCopyJson.addEventListener('click', () => {
     const data = {
       vertices: plotter.vertices,
@@ -820,7 +851,7 @@ function initControllerEvents() {
           throw new Error("Must be a list of lists representing hyperedges");
         }
       } else {
-        const parsed = JSON.parse(val);
+        const parsed = JSON.parse(val.replace(/'/g, '"'));
         if (parsed.vertices && parsed.hyperedges) {
           importedVertices = parsed.vertices;
           importedEdges = parsed.hyperedges.map(edge => ({
