@@ -1,6 +1,6 @@
 # Hypergraph Plotter
 
-A simple, interactive, client-side hypergraph visualizer and vector layout engine. This tool is designed to create high-contrast, clean, and publication-ready figures for academic papers, presentations, and network science research.
+A simple, interactive, client-side hypergraph visualizer and vector layout engine. This tool is designed to create high-contrast, visually clear, and publication-ready figures for academic papers, presentations, and network science research.
 
 ### Quick Links
 - 🌐 **[Live Web Application](https://phileasdg.github.io/hypergraph-plotter/)**
@@ -9,10 +9,10 @@ A simple, interactive, client-side hypergraph visualizer and vector layout engin
 - 📖 **[Library API Documentation](LIBRARY.md)**
 
 ## Features
-- **Clean Academic Styling**: Professional layout and theming, customized outline widths, customizable font sizes, and color palettes for publications.
-- **Layout Algorithms**: Dynamic force-directed spring layouts, circular layouts, grid layouts, and support for dragging nodes to customize layouts.
-- **Hyperedge Representation**: Convex hull and Minkowski-sum rounded boundaries (blobs) and hub curves for hyperedge representations.
-- **Data Portability**: Import from Wolfram Language or Python hyperedge lists. Export in JSON, Wolfram Language, and SVG formats.
+- **Clean academic styling**: Professional layout and theming, customized outline widths, customizable font sizes, and color palettes for publications.
+- **Layout options**: Dynamic force-directed spring layouts, circular layouts, grid layouts, and support for dragging nodes to customize layouts.
+- **Hyperedge visualization**: Convex hull and Minkowski-sum rounded boundaries (blobs) and hub curves for hyperedge representations.
+- **Data portability**: Import from Wolfram Language or Python hyperedge lists. Export in JSON, Wolfram Language, and SVG formats.
 
 ## Developer library documentation
 
