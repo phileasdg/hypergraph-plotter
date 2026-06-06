@@ -8,7 +8,29 @@ It is designed to be highly configurable, zero-dependency, and lightweight, maki
 
 ## 1. Quickstart
 
-To use the library on your website, import `HypergraphPlotter` as an ES Module:
+### Installation
+
+Install the package via npm:
+
+```bash
+npm install hypergraph-plotter
+```
+
+### Import & Usage
+
+If you are using a build tool or bundler (such as Vite, Webpack, or Rollup):
+
+```javascript
+import { HypergraphPlotter } from 'hypergraph-plotter';
+```
+
+For direct browser usage, you can import it from a CDN (like [esm.sh](https://esm.sh)):
+
+```javascript
+import { HypergraphPlotter } from 'https://esm.sh/hypergraph-plotter';
+```
+
+Or reference a local copy of `hypergraph-plotter.js` inside your project as shown below:
 
 ```html
 <!DOCTYPE html>

@@ -4,6 +4,7 @@ A simple, interactive, client-side hypergraph visualizer and vector layout engin
 
 ### Quick Links
 - 🌐 **[Live Web Application](https://phileasdg.github.io/hypergraph-plotter/)**
+- 📦 **[NPM Package Page](https://www.npmjs.com/package/hypergraph-plotter)**
 - 🧪 **[Interactive Library Demo](https://phileasdg.github.io/hypergraph-plotter/demo.html)**
 - 📖 **[Library API Documentation](LIBRARY.md)**
 
@@ -16,6 +17,10 @@ A simple, interactive, client-side hypergraph visualizer and vector layout engin
 ## Developer library documentation
 
 If you are a programmer interested in using this hypergraph visualizer and layout engine programmatically in your own code or website:
+- Install the package from npm:
+  ```bash
+  npm install hypergraph-plotter
+  ```
 - Read the **[Library API Documentation](LIBRARY.md)** for a quickstart guide, configuration options, and integration examples.
 - Try the **[Live Interactive Demo](https://phileasdg.github.io/hypergraph-plotter/demo.html)** (source code: [demo.html](demo.html)) to see programmatic layout updates, event handling, and option changes.
 

@@ -2,10 +2,12 @@
 
 Here is a list of long-term goals and features planned for the Hypergraph Plotter:
 
-## 1. Programmable JS library (Done & npm-ready)
-- Package the visualizer and layout algorithms (`geom.js`, `layout.js`, rendering logic) as a standalone JavaScript/npm library.
-- Allow developers to programmatically import, configure, and render hypergraph layouts onto a custom DOM element/SVG container without needing the graphical website environment.
-- Expose clear API methods for loading data, running layout iterations, adjusting themes, and triggering vector exports programmatically.
+## 1. Programmable JS library (Released on npm)
+- [x] Package the visualizer and layout algorithms (`geom.js`, `layout.js`, rendering logic) as a standalone JavaScript/npm library.
+- [x] Allow developers to programmatically import, configure, and render hypergraph layouts onto a custom DOM element/SVG container without needing the graphical website environment.
+- [x] Expose clear API methods for loading data, running layout iterations, adjusting themes, and triggering vector exports programmatically.
+- **Published Package**: [hypergraph-plotter on npm](https://www.npmjs.com/package/hypergraph-plotter)
+
 
 ## 2. Interactive embeds & iframe generator
 - Enable users to generate a self-contained iframe snippet or embed code for their designed hypergraphs.
@@ -31,3 +33,11 @@ Here is a list of long-term goals and features planned for the Hypergraph Plotte
 
 ## 7. Hyperedge labeling
 - Add the option to name hyperedges, and show hyperedge labels.
+## 8. Outline highlight on hover
+- Add an outline highlight on hover over interactive parts of the hypergraph.
+
+## 9. Hyperedge default names and toggling
+- Mechanism to label hyperedges (with a default name for each hyperedge), which should be toggled off display-wise by default.
+
+## 10. Selectable and modifiable hyperedges
+- Make the hyperedges selectable by clicking hyperedge blobs. Selected blobs should be modifiable (allowing users to change the name/label and color of the blob).
