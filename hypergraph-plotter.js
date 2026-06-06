@@ -38,7 +38,7 @@ export class HypergraphPlotter {
       gridColor: '#000000',
       gridOpacity: 0.04,
       physicsPlaying: true,
-      pinOnDrag: true,
+      pinOnDrag: false,
       allowPan: true,
       allowZoom: true,
       initialZoom: null,

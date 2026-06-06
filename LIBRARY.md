@@ -156,7 +156,7 @@ Configure layouts and styles by passing these keys in the options object or usin
 | **`gridColor`** | *String* | `'#000000'` | Hex color of the grid overlay. |
 | **`gridOpacity`** | *Number* | `0.04` | Opacity value of grid lines (0.0 to 0.5). |
 | **`physicsPlaying`** | *Boolean*| `true` | Toggles whether force calculations are running. |
-| **`pinOnDrag`** | *Boolean*| `true` | Automatically sets dragged nodes to fixed coordinates (pinned state). |
+| **`pinOnDrag`** | *Boolean*| `false` | Automatically sets dragged nodes to fixed coordinates (pinned state). |
 
 ### Layout Physics Options
 
