@@ -392,6 +392,7 @@ function addHyperedge() {
  */
 function loadDefaultGraph() {
   const edgeList = [
+    // Standard structural components (numbers)
     ['9', '10', '1'],
     ['1', '2', '3'],
     ['3', '4', '5'],
@@ -408,7 +409,24 @@ function loadDefaultGraph() {
     ['24', '25', '26'],
     ['27', '28', '29', '30'],
     ['31', '32', '33', '34', '35'],
-    ['36', '37', '38', '39', '40', '41']
+    ['36', '37', '38', '39', '40', '41'],
+
+    // Informative text components explaining the app (under 80 chars, structurally aligned)
+    ['Interactive Canvas', 'Hypergraph Elements', 'Physics Simulation', 'User Interactions'],
+    ['Hypergraph Elements', 'Vertices / Nodes', 'Bipartite Hubs', 'Enclosing Blobs'],
+    ['Physics Simulation', 'Link attraction', 'Vertex Repulsion', 'Component Spacing'],
+    ['User Interactions', 'Interactive Drag', 'Pan & Zoom Canvas', 'Pin Nodes'],
+    ['Vertices / Nodes', 'Auto Text Wrapping', 'Dynamic Aspect Ratio', 'Hover Tooltips'],
+    ['Auto Text Wrapping', 'Wolfram & Python Lists', 'SVG / JSON Exporters'],
+    
+    // Quick Start Guide (5-node component, all under 80 chars)
+    [
+      '1. Drag nodes. Toggle "Pin on drag" to lock coordinates automatically.',
+      '2. Click any locked node to release it back into the simulation.',
+      '3. Click "Release locked nodes" in the toolbar to unlock all nodes.',
+      '4. Use sidebar sliders to fine-tune attraction, repulsion, and styles.',
+      '5. Scroll the canvas to zoom, and drag the background to pan.'
+    ]
   ];
 
   const uniqueVertices = new Set();
@@ -417,9 +435,17 @@ function loadDefaultGraph() {
   });
 
   const defaultVertices = Array.from(uniqueVertices)
-    .map(v => parseInt(v))
-    .sort((a, b) => a - b)
-    .map(v => ({ id: String(v), label: String(v) }));
+    .sort((a, b) => {
+      const aNum = parseInt(a);
+      const bNum = parseInt(b);
+      const aIsNum = !isNaN(aNum) && String(aNum) === a;
+      const bIsNum = !isNaN(bNum) && String(bNum) === b;
+      if (aIsNum && bIsNum) return aNum - bNum;
+      if (aIsNum) return -1;
+      if (bIsNum) return 1;
+      return a.localeCompare(b);
+    })
+    .map(v => ({ id: v, label: v }));
 
   const defaultEdges = edgeList.map((edge, idx) => ({
     id: idx + 1,
