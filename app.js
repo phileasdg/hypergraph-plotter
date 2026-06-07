@@ -809,6 +809,9 @@ function initControllerEvents() {
     let val = modalTextarea.value.trim();
     if (!val) return;
 
+    // Remove backslash line continuations
+    val = val.replace(/\\\s*\r?\n\s*/g, '');
+
     if (val.startsWith('ResourceFunction["HypergraphPlot"][')) {
       const firstBracket = val.indexOf('[');
       const lastBracket = val.lastIndexOf(']');
@@ -914,10 +917,25 @@ function init() {
   // Handle data-sync callback back to sidebar list
   plotter.onDataChanged = updateHyperedgesList;
 
-  // Initialize UI controls
-  syncCustomizationInputs();
-  initControllerEvents();
-  loadDefaultGraph();
+  // Attempt to load external slider configurations
+  fetch('config.json')
+    .then(response => {
+      if (!response.ok) throw new Error('Not found');
+      return response.json();
+    })
+    .then(config => {
+      plotter.setOptions(config);
+      syncCustomizationInputs();
+    })
+    .catch(() => {
+      // Fallback silently if config.json is missing or offline
+      syncCustomizationInputs();
+    })
+    .finally(() => {
+      // Initialize UI controls and load graph
+      initControllerEvents();
+      loadDefaultGraph();
+    });
 }
 
 window.addEventListener('DOMContentLoaded', init);

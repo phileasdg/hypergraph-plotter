@@ -1,6 +1,47 @@
 import { Vec, getBlobPath } from './geom.js';
 import { BipartiteForceLayout, circularLayout, gridLayout } from './layout.js';
 
+function getNodeHullPoints(node) {
+  if (node.isHub) {
+    return [{ x: node.x, y: node.y }];
+  }
+  if (node.shape === 'rect') {
+    const x = node.x;
+    const y = node.y;
+    const hw = node.halfWidth || 10;
+    const hh = node.halfHeight || 10;
+    return [
+      { x: x - hw, y: y - hh },
+      { x: x - hw, y: y + hh },
+      { x: x + hw, y: y - hh },
+      { x: x + hw, y: y + hh }
+    ];
+  }
+  if (node.shape === 'capsule') {
+    const x = node.x;
+    const y = node.y;
+    const hw = node.halfWidth || 10;
+    const hh = node.halfHeight || 10;
+    if (hw > hh) {
+      // Horizontal pill: return left and right end centers of the capsule
+      const offset = hw - hh;
+      return [
+        { x: x - offset, y: y },
+        { x: x + offset, y: y }
+      ];
+    } else if (hh > hw) {
+      // Vertical pill: return top and bottom end centers of the capsule
+      const offset = hh - hw;
+      return [
+        { x: x, y: y - offset },
+        { x: x, y: y + offset }
+      ];
+    }
+  }
+  // Circle / default
+  return [{ x: node.x, y: node.y }];
+}
+
 /**
  * HypergraphPlotter - A standalone JavaScript library to visualize and lay out mathematical hypergraphs.
  */
@@ -351,10 +392,13 @@ export class HypergraphPlotter {
     // 1. Draw Subset Boundaries (Blobs)
     if (this.options.showSubsetBoundary) {
       this.hyperedges.forEach((edge, idx) => {
-        const coords = edge.vertices.map(vId => {
+        const coords = [];
+        edge.vertices.forEach(vId => {
           const simNode = this.physicsLayout.nodeMap.get(vId);
-          return simNode ? { x: simNode.x, y: simNode.y } : null;
-        }).filter(Boolean);
+          if (simNode) {
+            coords.push(...getNodeHullPoints(simNode));
+          }
+        });
 
         if (coords.length === 0) return;
 
@@ -458,7 +502,7 @@ export class HypergraphPlotter {
       });
     }
 
-    // 4. Draw Vertices (Circles)
+    // 4. Draw Vertices (Circles or Capsules)
     this.vertices.forEach(v => {
       const simNode = this.physicsLayout.nodeMap.get(v.id);
       if (!simNode) return;
@@ -470,38 +514,73 @@ export class HypergraphPlotter {
       g.setAttribute('class', 'vertex');
       g.setAttribute('data-id', v.id);
 
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', String(simNode.x));
-      circle.setAttribute('cy', String(simNode.y));
-      circle.setAttribute('stroke', isSelected ? 'var(--primary, #3b82f6)' : nodeStrokeColor);
-      circle.setAttribute('stroke-width', `${isSelected ? this.options.vertexOutlineWidth + 1.5 : this.options.vertexOutlineWidth}px`);
+      // Native browser tooltip showing the full original label on hover
+      const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      titleEl.textContent = v.label || String(v.id);
+      g.appendChild(titleEl);
 
-      let currentRadius = vertexRadius;
-      if (theme === 'clean') {
-        currentRadius = vertexRadius;
-        circle.setAttribute('r', String(currentRadius));
-        circle.setAttribute('fill', isSelected ? 'var(--primary, #3b82f6)' : '#495057');
-      } else if (theme === 'detailed') {
-        currentRadius = Math.max(4, vertexRadius * 0.4);
-        circle.setAttribute('r', String(currentRadius));
-        circle.setAttribute('fill', isSelected ? 'var(--primary, #3b82f6)' : '#000000');
+      let shapeEl;
+      if (theme === 'name-labeled' && simNode.shape === 'rect') {
+        shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const w = simNode.width;
+        const h = simNode.height;
+        shapeEl.setAttribute('x', String(simNode.x - w / 2));
+        shapeEl.setAttribute('y', String(simNode.y - h / 2));
+        shapeEl.setAttribute('width', String(w));
+        shapeEl.setAttribute('height', String(h));
+        shapeEl.setAttribute('rx', '8');
+        shapeEl.setAttribute('ry', '8');
+        shapeEl.setAttribute('fill', isSelected ? '#e9ecef' : nodeFillColor);
+        shapeEl.setAttribute('stroke', isSelected ? 'var(--primary, #3b82f6)' : nodeStrokeColor);
+        shapeEl.setAttribute('stroke-width', `${isSelected ? this.options.vertexOutlineWidth + 1.5 : this.options.vertexOutlineWidth}px`);
+      } else if (theme === 'name-labeled' && simNode.shape === 'capsule') {
+        shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const w = simNode.width;
+        const h = simNode.height;
+        shapeEl.setAttribute('x', String(simNode.x - w / 2));
+        shapeEl.setAttribute('y', String(simNode.y - h / 2));
+        shapeEl.setAttribute('width', String(w));
+        shapeEl.setAttribute('height', String(h));
+        shapeEl.setAttribute('rx', String(h / 2));
+        shapeEl.setAttribute('ry', String(h / 2));
+        shapeEl.setAttribute('fill', isSelected ? '#e9ecef' : nodeFillColor);
+        shapeEl.setAttribute('stroke', isSelected ? 'var(--primary, #3b82f6)' : nodeStrokeColor);
+        shapeEl.setAttribute('stroke-width', `${isSelected ? this.options.vertexOutlineWidth + 1.5 : this.options.vertexOutlineWidth}px`);
       } else {
-        // name-labeled (Default)
-        currentRadius = vertexRadius;
-        circle.setAttribute('r', String(currentRadius));
-        circle.setAttribute('fill', isSelected ? '#e9ecef' : nodeFillColor);
+        shapeEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        shapeEl.setAttribute('cx', String(simNode.x));
+        shapeEl.setAttribute('cy', String(simNode.y));
+        shapeEl.setAttribute('stroke', isSelected ? 'var(--primary, #3b82f6)' : nodeStrokeColor);
+        shapeEl.setAttribute('stroke-width', `${isSelected ? this.options.vertexOutlineWidth + 1.5 : this.options.vertexOutlineWidth}px`);
+
+        let currentRadius = vertexRadius;
+        if (theme === 'clean') {
+          currentRadius = vertexRadius;
+          shapeEl.setAttribute('r', String(currentRadius));
+          const cleanFill = this.options.nodeFillType === 'custom' ? nodeFillColor : (isDarkCanvas ? '#adb5bd' : '#495057');
+          shapeEl.setAttribute('fill', isSelected ? 'var(--primary, #3b82f6)' : cleanFill);
+        } else if (theme === 'detailed') {
+          currentRadius = Math.max(4, vertexRadius * 0.4);
+          shapeEl.setAttribute('r', String(currentRadius));
+          const detailedFill = this.options.nodeFillType === 'custom' ? nodeFillColor : (isDarkCanvas ? '#e9ecef' : '#000000');
+          shapeEl.setAttribute('fill', isSelected ? 'var(--primary, #3b82f6)' : detailedFill);
+        } else {
+          // name-labeled circle: label is short enough to fit inside the circle diameter
+          currentRadius = vertexRadius;
+          shapeEl.setAttribute('r', String(simNode.radius || currentRadius));
+          shapeEl.setAttribute('fill', isSelected ? '#e9ecef' : nodeFillColor);
+        }
       }
 
       if (isPinned) {
-        circle.setAttribute('stroke-dasharray', '3,2');
+        shapeEl.setAttribute('stroke-dasharray', '3,2');
       }
-      g.appendChild(circle);
+      g.appendChild(shapeEl);
       this.verticesLayer.appendChild(g);
 
       // 5. Draw Labels
       if (theme !== 'clean') {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.textContent = v.label;
         text.setAttribute('font-family', fontFamilyStr);
         text.setAttribute('font-size', `${this.options.labelFontSize}px`);
         text.setAttribute('fill', labelColor);
@@ -509,15 +588,27 @@ export class HypergraphPlotter {
         text.setAttribute('pointer-events', 'none');
 
         if (theme === 'detailed') {
+          text.textContent = simNode.label || v.label;
           text.setAttribute('x', String(simNode.x + Math.max(8, vertexRadius * 0.5)));
           text.setAttribute('y', String(simNode.y - Math.max(8, vertexRadius * 0.5)));
           text.setAttribute('text-anchor', 'start');
+          this.labelsLayer.appendChild(text);
         } else {
-          text.setAttribute('x', String(simNode.x));
-          text.setAttribute('y', String(simNode.y + (this.options.labelFontSize * 0.35)));
-          text.setAttribute('text-anchor', 'middle');
+          // name-labeled (Default) - support wrapping & multiple tspans
+          const lines = simNode.lines || this.physicsLayout.wrapText(simNode.label || v.label, 16);
+          const lineHeight = this.options.labelFontSize * 1.2;
+          const startY = simNode.y - ((lines.length - 1) * lineHeight) / 2 + (this.options.labelFontSize * 0.35);
+
+          lines.forEach((lineText, idx) => {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.textContent = lineText;
+            tspan.setAttribute('x', String(simNode.x));
+            tspan.setAttribute('y', String(startY + idx * lineHeight));
+            tspan.setAttribute('text-anchor', 'middle');
+            text.appendChild(tspan);
+          });
+          this.labelsLayer.appendChild(text);
         }
-        this.labelsLayer.appendChild(text);
       }
     });
   }
@@ -531,11 +622,11 @@ export class HypergraphPlotter {
     this.vertices = data.vertices || [];
     this.hyperedges = data.hyperedges || [];
 
-    this.physicsLayout.setGraph(this.vertices, this.hyperedges);
+    this.physicsLayout.setGraph(this.vertices, this.hyperedges, this.options);
 
     if (this.options.layoutType === 'spring-embedding') {
       // Warm up the simulation so it is mostly settled before framing/rendering
-      const ticks = isFirstLoad ? 120 : 60;
+      const ticks = isFirstLoad ? 250 : 100;
       for (let i = 0; i < ticks; i++) {
         this.physicsLayout.tick();
       }
@@ -593,9 +684,11 @@ export class HypergraphPlotter {
       this.physicsLayout.damping = this.options.damping;
       this.physicsLayout.maxSpeed = this.options.maxSpeed;
 
+      this.physicsLayout.updateNodeDimensions(this.options);
+
       // Update target centers immediately if spacing parameter changes
       if (options.componentSpacing !== undefined && this.vertices.length > 0) {
-        this.physicsLayout.setGraph(this.vertices, this.hyperedges);
+        this.physicsLayout.setGraph(this.vertices, this.hyperedges, this.options);
       }
     }
 
@@ -819,8 +912,8 @@ export class HypergraphPlotter {
     if (hubs) hubs.remove();
 
     // Remove dash array highlights for nodes
-    clonedSvg.querySelectorAll('.vertex circle').forEach(circle => {
-      circle.removeAttribute('stroke-dasharray');
+    clonedSvg.querySelectorAll('.vertex circle, .vertex rect').forEach(el => {
+      el.removeAttribute('stroke-dasharray');
     });
 
     // 2. Align namespaces and bounds

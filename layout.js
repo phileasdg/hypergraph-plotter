@@ -6,6 +6,7 @@ import { Vec } from './geom.js';
  */
 export class BipartiteForceLayout {
   constructor(options = {}) {
+    this.options = options;
     this.width = options.width || 800;
     this.height = options.height || 600;
     
@@ -31,8 +32,10 @@ export class BipartiteForceLayout {
    * If nodes already exist, we preserve their positions for a smooth transition.
    * @param {Array} vertices - List of vertex objects: { id, label }
    * @param {Array} hyperedges - List of hyperedges: { id, vertices: [vId1, vId2, ...] }
+   * @param {Object} options - Visual styling/customization options (theme, fonts, sizes)
    */
-  setGraph(vertices, hyperedges) {
+  setGraph(vertices, hyperedges, options = {}) {
+    this.options = { ...this.options, ...options };
     const oldNodeMap = new Map(this.nodes.map(n => [n.id, n]));
     this.nodes = [];
     this.nodeMap.clear();
@@ -134,10 +137,15 @@ export class BipartiteForceLayout {
       const angle = Math.random() * 2 * Math.PI;
       const radius = numComponents <= 1 ? (130 + Math.random() * 40) : (30 + Math.random() * 20);
 
+      let label = v.label || String(v.id);
+      if (label.length > 80) {
+        label = label.substring(0, 77) + '...';
+      }
+
       const node = {
         id: v.id,
         isHub: false,
-        label: v.label || String(v.id),
+        label: label,
         targetX: target.targetX,
         targetY: target.targetY,
         componentId: target.componentId !== undefined ? target.componentId : 0,
@@ -203,6 +211,8 @@ export class BipartiteForceLayout {
         }
       });
     });
+
+    this.updateNodeDimensions(options);
   }
 
   /**
@@ -212,12 +222,53 @@ export class BipartiteForceLayout {
     const n = this.nodes.length;
     if (n === 0) return;
 
+    // Visual blob margin: how far the rendered blob extends past each node's surface.
+    // Used to ensure cross-component spacing keeps blobs from visually overlapping.
+    const vertexSize = this.options.vertexSize || 0.15;
+    const vertexRadius = 12 * (vertexSize / 0.15);
+    const blobMargin = vertexRadius * (this.options.boundaryScale || 2.0);
+
     // Reset forces (using vx, vy temporarily to accumulate forces, then apply them)
     const fx = new Array(n).fill(0);
     const fy = new Array(n).fill(0);
 
     const centerX = this.width / 2;
     const centerY = this.height / 2;
+
+    // Build a set of linked vertex-hub pairs to skip self-repulsion in the layout physics
+    const linkedPairs = new Set();
+    this.links.forEach(link => {
+      linkedPairs.add(`${link.vertexId}_${link.hubId}`);
+    });
+
+    // Precompute each hub's blob reach: the maximum distance from the hub to any of its
+    // linked vertex nodes, plus the blob visual margin. This is the true visual "radius"
+    // of the hyperedge blob from the hub's perspective, and is used to enforce
+    // blob-surface separation between different hyperedges.
+    //
+    // blobReach is smoothed with an exponential moving average (EMA) to prevent the
+    // goal distance from jumping on every frame (which would cause oscillation).
+    const blobGap = 10; // minimum gap (px) to maintain between blob surfaces
+    this.nodes.forEach(node => {
+      if (!node.isHub) return;
+      let maxDist = 0;
+      this.links.forEach(link => {
+        if (link.hubId !== node.id) return;
+        const v = this.nodeMap.get(link.vertexId);
+        if (!v) return;
+        const dx = v.x - node.x;
+        const dy = v.y - node.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        // Account for the vertex node's own half-extent in the blob direction
+        const vReach = d + (v.radius || v.halfWidth || vertexRadius);
+        if (vReach > maxDist) maxDist = vReach;
+      });
+      const rawReach = maxDist + blobMargin;
+      // EMA: 95% previous value + 5% new measurement — smooths out frame-to-frame jitter
+      node.blobReach = node.blobReach != null
+        ? 0.95 * node.blobReach + 0.05 * rawReach
+        : rawReach;
+    });
 
     // 1. Repulsion between all node pairs
     for (let i = 0; i < n; i++) {
@@ -236,6 +287,41 @@ export class BipartiteForceLayout {
           d = Math.sqrt(dx * dx + dy * dy);
         }
 
+        const ux = dx / d;
+        const uy = dy / d;
+
+        const sameComp = (n1.componentId === n2.componentId);
+
+        // Skip repulsion between a hub and its own member vertices to improve stability
+        const isLinked = (n1.isHub && !n2.isHub && linkedPairs.has(`${n2.id}_${n1.id}`)) ||
+                         (n2.isHub && !n1.isHub && linkedPairs.has(`${n1.id}_${n2.id}`));
+        if (isLinked) {
+          continue;
+        }
+
+        // Compute radius for node 1: same-component repulsion uses isotropic bounding circles (n1.radius)
+        // to prevent vibration/jitter. Cross-component uses direction-sensitive ray-cast for accuracy.
+        let r1 = 0;
+        if (n1.isHub) {
+          r1 = n1.radius || 4;
+        } else if (!sameComp && (n1.shape === 'capsule' || n1.shape === 'rect')) {
+          r1 = Math.min(n1.halfWidth / Math.max(0.0001, Math.abs(ux)), n1.halfHeight / Math.max(0.0001, Math.abs(uy)));
+        } else {
+          r1 = n1.radius || 12;
+        }
+
+        // Compute radius for node 2
+        let r2 = 0;
+        if (n2.isHub) {
+          r2 = n2.radius || 4;
+        } else if (!sameComp && (n2.shape === 'capsule' || n2.shape === 'rect')) {
+          r2 = Math.min(n2.halfWidth / Math.max(0.0001, Math.abs(ux)), n2.halfHeight / Math.max(0.0001, Math.abs(uy)));
+        } else {
+          r2 = n2.radius || 12;
+        }
+
+        const R_repel = r1 + r2;
+
         let force = 0;
         let repelCoeff = this.kRepel;
         if (n1.isHub && n2.isHub) {
@@ -244,22 +330,45 @@ export class BipartiteForceLayout {
           repelCoeff = (this.kRepel + this.kHyperedgeRepel) / 2;
         }
 
-        if (n1.componentId === n2.componentId) {
+        if (sameComp) {
           // Standard repulsion within the same component
-          force = repelCoeff / (d * d);
+          if (d >= R_repel) {
+            const dEff = d - R_repel + 24.0;
+            force = repelCoeff / (dEff * dEff);
+          } else {
+            // Linear overlap spring force: when boundaries overlap (d < R_repel), we apply a force
+            // that increases linearly with the overlap distance in pixels. This is extremely stable
+            // (no high-frequency vibration/jiggling) and scales directly with the physical overlap,
+            // preventing large nodes from collapsing onto each other.
+            const overlap = R_repel - d;
+            const kOverlap = repelCoeff / 500;
+            force = (repelCoeff / 576.0) + kOverlap * overlap;
+          }
         } else {
-          const goal = this.componentSpacing;
+          // Cross-component: enforce blob-surface separation.
+          let goal;
+          if (n1.isHub && n2.isHub) {
+            // Hub-to-hub: use each hub's full blob reach so the blob surfaces
+            // of the two hyperedges are at least blobGap pixels apart.
+            const reach1 = n1.blobReach || blobMargin;
+            const reach2 = n2.blobReach || blobMargin;
+            goal = Math.max(this.componentSpacing, reach1 + reach2 + blobGap);
+          } else {
+            // Hub-to-vertex or vertex-to-vertex: use node surface geometry plus
+            // the blob visual margin on each side, with a small clearance gap.
+            goal = Math.max(this.componentSpacing, R_repel + 2 * blobMargin + blobGap);
+          }
+
           if (goal <= 0) {
-            // No repulsion at all if componentSpacing is 0
             continue;
           }
           if (d < goal) {
-            // Separation force pushes nodes from different components apart if closer than the goal
             let factor = 1.0;
             if (this.kRepel > 0) {
               factor = repelCoeff / this.kRepel;
             }
-            force = 0.25 * factor * (goal - d);
+            // Use 0.2 coefficient — stable with EMA-smoothed goal and damping=0.88
+            force = 0.2 * factor * (goal - d);
           }
         }
 
@@ -289,8 +398,12 @@ export class BipartiteForceLayout {
       const d = Math.sqrt(dx * dx + dy * dy);
       if (d < 0.1) return;
 
-      // Spring force: F = kAttract * (d - restLength)
-      const force = this.kAttract * (d - this.restLength);
+      // Spring force: F = kAttract * (d - effRestLength)
+      // Account for the vertex's own radius in the spring's rest length.
+      // This gives larger nodes more "slack" (space to repel each other) by pulling
+      // based on their surface distance rather than center distance.
+      const effRestLength = this.restLength + (vNode.radius || 12);
+      const force = this.kAttract * (d - effRestLength);
       const fX = (dx / d) * force;
       const fY = (dy / d) * force;
 
@@ -347,7 +460,118 @@ export class BipartiteForceLayout {
    * Runs the layout simulation synchronously for a number of iterations.
    * Useful for a non-animated layout computation.
    */
-  runStatic(iterations = 150) {
+  wrapText(text, maxCharsPerLine = 16) {
+    if (!text) return [''];
+    if (text.length <= maxCharsPerLine) return [text];
+
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+        currentLine = (currentLine + ' ' + word).trim();
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        currentLine = word;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    return lines;
+  }
+
+  updateNodeDimensions(options = {}) {
+    this.options = { ...this.options, ...options };
+    const theme = this.options.plotTheme || 'name-labeled';
+    const labelFontSize = this.options.labelFontSize || 12;
+    const vertexSize = this.options.vertexSize || 0.15;
+    const vertexRadius = 12 * (vertexSize / 0.15);
+
+    this.nodes.forEach(node => {
+      if (node.isHub) {
+        node.shape = 'circle';
+        node.radius = 4;
+        node.halfWidth = 4;
+        node.halfHeight = 4;
+        return;
+      }
+
+      const label = node.label || '';
+      if (theme === 'clean') {
+        node.shape = 'circle';
+        node.radius = vertexRadius;
+        node.halfWidth = vertexRadius;
+        node.halfHeight = vertexRadius;
+      } else if (theme === 'detailed') {
+        const r = Math.max(4, vertexRadius * 0.4);
+        node.shape = 'circle';
+        node.radius = r;
+        node.halfWidth = r;
+        node.halfHeight = r;
+      } else {
+        // name-labeled
+        const L = label.length;
+        const targetChars = Math.round(Math.sqrt(L * 2.18));
+        const charsPerLine = Math.max(8, Math.min(22, targetChars));
+        const lines = this.wrapText(label, charsPerLine);
+        node.lines = lines;
+        const maxLineLength = Math.max(...lines.map(l => l.length));
+        const paddingX = 10;
+        const paddingY = 6;
+        const lineHeight = labelFontSize * 1.2;
+
+        // Raw pixel width estimate (no minimum floor) — used for the geometry test only.
+        // The 0.55 ratio is appropriate for the Inter/Outfit fonts used by this project.
+        const rawLabelWidth = maxLineLength * (labelFontSize * 0.55);
+
+        // Est. text width with a minimum floor — used for sizing capsule/rect shapes.
+        const estimatedTextWidth = Math.max(16, rawLabelWidth);
+
+        // A label fits inside a circle when it is a single line AND its raw pixel width
+        // fits within the circle's inner diameter (diameter minus comfortable side padding).
+        const circlePaddingX = 4;
+        const fitsInCircle = lines.length === 1 && rawLabelWidth <= (vertexRadius * 2 - circlePaddingX * 2);
+
+        if (fitsInCircle) {
+          // Short labels: render as a circle. The radius grows just enough to
+          // prevent the text from clipping the edge.
+          const minRadius = Math.max(vertexRadius, rawLabelWidth / 2 + circlePaddingX);
+          node.shape = 'circle';
+          node.radius = minRadius;
+          node.halfWidth = minRadius;
+          node.halfHeight = minRadius;
+          node.width = minRadius * 2;
+          node.height = minRadius * 2;
+        } else if (lines.length === 1) {
+          // Medium single-line labels: pill / capsule shape.
+          const w = estimatedTextWidth + 2 * paddingX;
+          const h = labelFontSize + 2 * paddingY;
+          node.shape = 'capsule';
+          node.width = w;
+          node.height = h;
+          node.halfWidth = w / 2;
+          node.halfHeight = h / 2;
+          node.radius = Math.max(w / 2, h / 2);
+        } else {
+          // Multi-line labels: rounded rectangle.
+          const w = estimatedTextWidth + 2 * paddingX;
+          const h = (lines.length - 1) * lineHeight + labelFontSize + 2 * paddingY;
+          node.shape = 'rect';
+          node.width = w;
+          node.height = h;
+          node.halfWidth = w / 2;
+          node.halfHeight = h / 2;
+          node.radius = Math.max(w / 2, h / 2);
+        }
+      }
+    });
+  }
+
+  runStatic(iterations = 250) {
     for (let i = 0; i < iterations; i++) {
       this.tick();
     }

@@ -159,24 +159,24 @@ Configure layouts and styles by passing these keys in the options object or usin
 | **`plotTheme`** | *String* | `'name-labeled'` | Visual theme: `'name-labeled'` (default with text labels), `'detailed'` (text labels outside nodes), or `'clean'` (no text labels). |
 | **`canvasBg`** | *String* | `'transparent'` | Canvas background color: `'transparent'`, `'white'`, `'light-grey'`, `'dark-slate'`, or `'custom'`. |
 | **`canvasBgCustom`** | *String* | `'#ffffff'` | Hex color used when `canvasBg` is set to `'custom'`. |
-| **`vertexSize`** | *Number* | `0.15` | Sizing scale for node circles. |
-| **`vertexOutlineWidth`**| *Number* | `1.5` | Outline border thickness of vertices (px). |
+| **`vertexSize`** | *Number* | `0.15` | Dimensionless scale factor for node circles. The default value `0.15` corresponds to a radius of 12 px at the base zoom. |
+| **`vertexOutlineWidth`**| *Number* | `1.5` | Outline border thickness of vertices in pixels (px). |
 | **`nodeFillType`** | *String* | `'automatic'` | Node circle fill: `'automatic'` (contrasted to background) or `'custom'`. |
 | **`nodeFillCustom`** | *String* | `'#ffffff'` | Hex color used when `nodeFillType` is set to `'custom'`. |
 | **`labelFontFamily`** | *String* | `'sans-serif'` | Label typography: `'sans-serif'`, `'serif'`, or `'monospace'`. |
 | **`labelFontSize`** | *Number* | `12` | Label font size (px). |
 | **`showSubsetBoundary`**| *Boolean*| `true` | If true, draws rounded enclosing hulls (blobs) around hyperedge nodes. |
-| **`boundaryScale`** | *Number* | `2.0` | Outer padding scale of hyperedge boundary blobs. |
-| **`blobOpacity`** | *Number* | `0.18` | Transparency value for hyperedge blobs (0.0 to 1.0). |
-| **`blobOutlineWidth`** | *Number* | `1.5` | Outline border thickness of blobs. |
+| **`boundaryScale`** | *Number* | `2.0` | Dimensionless scale multiplier controlling the outer padding of hyperedge boundary blobs relative to the vertex radius. |
+| **`blobOpacity`** | *Number* | `0.18` | Transparency value for hyperedge blobs (range 0.0 to 1.0). |
+| **`blobOutlineWidth`** | *Number* | `1.5` | Outline border thickness of blobs (px). |
 | **`showSubsetEdge`** | *Boolean*| `true` | If true, renders Bezier curves linking vertices to their hyperedge hub centers. |
-| **`edgeWidth`** | *Number* | `2.0` | Bezier curve edge line thickness (px). |
+| **`edgeWidth`** | *Number* | `2.0` | Bezier curve edge line thickness in pixels (px). |
 | **`edgePalette`** | *String* | `'rainbow'` | Edge color maps: `'rainbow'`, `'grayscale'`, `'pastel'`, `'cool-ice'`, `'warm-sunset'`, `'ocean-breeze'`, `'forest-earth'`, `'neon-glow'`, `'viridis'`, `'plasma'`, `'cividis'`, `'magma'`, `'inferno'`, `'cyberpunk'`, `'aurora'`, `'desert-sand'`, `'botanical'`, `'berry-wine'`, `'academic-bold'`, `'academic-set1'`, `'academic-set2'`, `'academic-dark'`, `'academic-paired'`, or `'custom-solid'`. |
 | **`edgeColorCustom`** | *String* | `'#3b82f6'` | Hex color globally applied to all edges when `edgePalette` is set to `'custom-solid'`. |
 | **`showHubs`** | *Boolean*| `false` | Displays the virtual force centers (hubs) as interactive handles. |
 | **`showGrid`** | *Boolean*| `false` | Renders a background coordinate alignment grid. |
 | **`gridColor`** | *String* | `'#000000'` | Hex color of the grid overlay. |
-| **`gridOpacity`** | *Number* | `0.04` | Opacity value of grid lines (0.0 to 0.5). |
+| **`gridOpacity`** | *Number* | `0.04` | Opacity value of grid lines (range 0.0 to 0.5). |
 | **`physicsPlaying`** | *Boolean*| `true` | Toggles whether force calculations are running. |
 | **`pinOnDrag`** | *Boolean*| `false` | Automatically sets dragged nodes to fixed coordinates (pinned state). |
 
@@ -184,12 +184,46 @@ Configure layouts and styles by passing these keys in the options object or usin
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| **`kAttract`** | *Number* | `0.2` | Link attraction coefficient (spring stiffness). |
-| **`kRepel`** | *Number* | `10000` | Vertex-to-vertex repulsion coefficient. |
-| **`kHyperedgeRepel`** | *Number* | `10000` | Hyperedge-to-hyperedge (and hyperedge-to-vertex) repulsion coefficient. |
-| **`kCenter`** | *Number* | `0.004` | Center-of-gravity attraction coefficient. |
-| **`restLength`** | *Number* | `0` | Equilibrium rest length of spring link lines. |
-| **`componentSpacing`** | *Number* | `90` | Distance radius separating targets of disconnected connected components. |
+| **`kAttract`** | *Number* | `0.2` | Link attraction coefficient — spring stiffness. |
+| **`kRepel`** | *Number* | `10000` | Vertex-to-vertex repulsion force coefficient. |
+| **`kHyperedgeRepel`** | *Number* | `10000` | Hyperedge-to-hyperedge (and hyperedge-to-vertex) repulsion force coefficient. |
+| **`kCenter`** | *Number* | `0.004` | Center-of-gravity coefficient. |
+| **`restLength`** | *Number* | `0` | Equilibrium rest length of spring links. |
+| **`componentSpacing`** | *Number* | `90` | Separation boundary between disconnected components. |
+| **`damping`** | *Number* | `0.88` | Velocity decay coefficient per frame. |
+| **`maxSpeed`** | *Number* | `10` | Maximum velocity cap per node per simulation frame. |
 
-| **`damping`** | *Number* | `0.88` | Damping coefficient (velocity decay rate). |
-| **`maxSpeed`** | *Number* | `10` | Maximum speed limit of vertices per layout tick step. |
+---
+
+## 4. Default Configuration File (`config.json`)
+
+The web app ships with a `config.json` file that lets you override the library defaults without touching any code. On startup the app fetches this file and passes its values to `setOptions()`, so any key listed in [Section 3](#3-configurations) can be set here.
+
+```json
+{
+  "vertexSize": 0.15,
+  "vertexOutlineWidth": 1.5,
+  "plotTheme": "name-labeled",
+  "labelFontSize": 12,
+  "showSubsetBoundary": true,
+  "boundaryScale": 2.0,
+  "blobOpacity": 0.18,
+  "blobOutlineWidth": 1.5,
+  "showSubsetEdge": true,
+  "edgeWidth": 2.0,
+  "showHubs": false,
+  "showGrid": false,
+  "gridOpacity": 0.04,
+  "pinOnDrag": false,
+  "kAttract": 0.2,
+  "kRepel": 10000,
+  "kHyperedgeRepel": 10000,
+  "kCenter": 0.004,
+  "restLength": 0,
+  "componentSpacing": 90,
+  "damping": 0.88,
+  "maxSpeed": 10
+}
+```
+
+To change a default: edit the value in `config.json`, save, and refresh the browser. The file is silently ignored if it is missing (the library's built-in defaults take over).
