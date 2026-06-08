@@ -648,13 +648,14 @@ export class HypergraphPlotter {
       this.pan.y = screenH / 2 - (this.physicsLayout.height / 2) * this.zoom;
       this.applyTransform();
     } else {
-      // Fit to viewport with reasonable extra spacing (18% padding for first load, default for subsequent)
       const svgRect = this.svg.getBoundingClientRect();
       const width = svgRect.width || this.options.width;
       const height = svgRect.height || this.options.height;
+      const isEmbedNoUI = document.body.classList.contains('embed-mode') && 
+                          (!document.getElementById('control-sidebar') || document.getElementById('control-sidebar').style.display === 'none');
       const padding = isFirstLoad 
-        ? Math.max(60, Math.min(width * 0.18, height * 0.18)) 
-        : null;
+        ? (isEmbedNoUI ? Math.max(20, Math.min(width * 0.05, height * 0.05)) : Math.max(60, Math.min(width * 0.18, height * 0.18))) 
+        : (isEmbedNoUI ? Math.max(16, Math.min(width * 0.04, height * 0.04)) : null);
       this.zoomToFit(padding);
     }
 
@@ -875,10 +876,11 @@ export class HypergraphPlotter {
 
     layoutNodes.forEach(node => {
       if (node.isHub && !this.options.showSubsetEdge && !this.options.showSubsetBoundary) return;
-      minX = Math.min(minX, node.x);
-      maxX = Math.max(maxX, node.x);
-      minY = Math.min(minY, node.y);
-      maxY = Math.max(maxY, node.y);
+      const r = node.radius || 15;
+      minX = Math.min(minX, node.x - r);
+      maxX = Math.max(maxX, node.x + r);
+      minY = Math.min(minY, node.y - r);
+      maxY = Math.max(maxY, node.y + r);
     });
 
     const graphW = maxX - minX;
@@ -887,7 +889,12 @@ export class HypergraphPlotter {
     if (graphW <= 0 || graphH <= 0) return;
 
     // Default to a clean, responsive padding to fit the viewport nicely
-    const finalPadding = padding !== null ? padding : Math.max(40, Math.min(width * 0.12, height * 0.12));
+    const isEmbedNoUI = document.body.classList.contains('embed-mode') && 
+                        (!document.getElementById('control-sidebar') || document.getElementById('control-sidebar').style.display === 'none');
+    const defaultPadding = isEmbedNoUI 
+      ? Math.max(24, Math.min(width * 0.05, height * 0.05)) 
+      : Math.max(40, Math.min(width * 0.12, height * 0.12));
+    const finalPadding = padding !== null ? padding : defaultPadding;
     const scaleX = (width - finalPadding * 2) / graphW;
     const scaleY = (height - finalPadding * 2) / graphH;
     const targetZoom = Math.max(0.1, Math.min(2.5, Math.min(scaleX, scaleY)));

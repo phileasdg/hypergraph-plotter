@@ -1125,9 +1125,6 @@ function initControllerEvents() {
  * Main Controller Initializer
  */
 function init() {
-  const w = canvasElement.clientWidth || 800;
-  const h = canvasElement.clientHeight || 600;
-
   // Detect and apply embed mode settings
   const urlParams = new URLSearchParams(window.location.search);
   const isEmbed = urlParams.get('embed') === 'true';
@@ -1145,6 +1142,9 @@ function init() {
     const floatingControls = document.getElementById('floating-physics-controls');
     if (floatingControls) floatingControls.style.display = showControls ? 'flex' : 'none';
   }
+
+  const w = canvasElement.clientWidth || 800;
+  const h = canvasElement.clientHeight || 600;
 
   // Instantiate the library class on the SVG container element
   plotter = new HypergraphPlotter(canvasElement, {
@@ -1197,6 +1197,11 @@ function init() {
           plotter.pinnedNodeIds.add(v.id);
         });
       }
+
+      // Force a framing zoom calculation once the view has fully rendered
+      setTimeout(() => {
+        plotter.zoomToFit();
+      }, 50);
     });
 }
 
