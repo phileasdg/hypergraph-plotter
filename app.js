@@ -86,14 +86,23 @@ const btnCopyPython = document.getElementById('btn-copy-python');
 const btnCopyJson = document.getElementById('btn-copy-json');
 const btnImportData = document.getElementById('btn-import-data');
 
-// Embed Modal DOM references
-const btnModalEmbed = document.getElementById('btn-modal-embed');
-const modalEmbedOverlay = document.getElementById('modal-embed-overlay');
-const btnModalEmbedClose = document.getElementById('btn-modal-embed-close');
+// Import/Export Modal Tabbed DOM references
+const tabBtnData = document.getElementById('tab-btn-data');
+const tabBtnEmbed = document.getElementById('tab-btn-embed');
+const panelData = document.getElementById('panel-data');
+const panelEmbed = document.getElementById('panel-embed');
+const modalFooter = document.getElementById('modal-import-export-footer');
+
 const embedIframeCode = document.getElementById('embed-iframe-code');
-const embedScriptCode = document.getElementById('embed-script-code');
 const btnCopyEmbedIframe = document.getElementById('btn-copy-embed-iframe');
-const btnCopyEmbedScript = document.getElementById('btn-copy-embed-script');
+const btnCopyEmbedUrl = document.getElementById('btn-copy-embed-url');
+
+const embedOptUi = document.getElementById('embed-opt-ui');
+const embedOptCamera = document.getElementById('embed-opt-camera');
+const embedOptNodes = document.getElementById('embed-opt-nodes');
+const embedOptControls = document.getElementById('embed-opt-controls');
+
+let currentEmbedUrl = '';
 
 /**
  * Parses Wolfram Language curly braces lists: e.g. {{1, 2}, {3, 4}}
@@ -174,9 +183,11 @@ function serializeState() {
 
   const jsonStr = JSON.stringify(state);
   // Safe base64 encoding supporting Unicode characters
-  return btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+  const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
     return String.fromCharCode(parseInt(p1, 16));
   }));
+  // Convert standard base64 to URL-safe base64
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 /**
@@ -184,7 +195,13 @@ function serializeState() {
  */
 function deserializeState(base64Str) {
   try {
-    const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(base64Str), (c) => {
+    // Restore base64 padding and characters
+    let base64 = base64Str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+
+    const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(base64), (c) => {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     
@@ -215,6 +232,34 @@ function deserializeState(base64Str) {
     console.error("Failed to deserialize state:", err);
     return false;
   }
+}
+
+/**
+ * Generates the iframe and script embed codes based on current state.
+ */
+function updateEmbedCodes() {
+  const stateStr = serializeState();
+  const baseUrl = window.location.origin + window.location.pathname;
+  
+  let queryParts = ['embed=true'];
+  if (embedOptUi && embedOptUi.checked) {
+    queryParts.push('ui=true');
+  }
+  if (embedOptCamera && embedOptCamera.checked) {
+    queryParts.push('camera=fixed');
+  }
+  if (embedOptNodes && embedOptNodes.checked) {
+    queryParts.push('nodes=fixed');
+  }
+  if (embedOptControls && embedOptControls.checked) {
+    queryParts.push('controls=true');
+  }
+  
+  const iframeUrl = `${baseUrl}?${queryParts.join('&')}#state=${stateStr}`;
+  currentEmbedUrl = iframeUrl;
+  
+  // IFrame Code
+  embedIframeCode.value = `<iframe src="${iframeUrl}" width="100%" height="500" style="border: 1px solid var(--border-color, #ddd); border-radius: 8px;" allowfullscreen></iframe>`;
 }
 
 
@@ -847,6 +892,17 @@ function initControllerEvents() {
   btnModalImportExport.addEventListener('click', () => {
     importErrorMsg.style.display = 'none';
     modalTextarea.value = serializeToWolfram();
+    
+    // Reset active tab to "Data"
+    tabBtnData.classList.add('active');
+    tabBtnEmbed.classList.remove('active');
+    panelData.style.display = 'flex';
+    panelEmbed.style.display = 'none';
+    modalFooter.style.display = 'flex';
+    
+    // Generate embed codes immediately
+    updateEmbedCodes();
+
     modalOverlay.classList.add('active');
   });
 
@@ -1001,57 +1057,21 @@ function initControllerEvents() {
     }
   });
 
-  // Embed modal event triggers
-  btnModalEmbed.addEventListener('click', () => {
-    const stateStr = serializeState();
-    const baseUrl = window.location.origin + window.location.pathname;
-    const iframeUrl = `${baseUrl}?embed=true#state=${stateStr}`;
-    
-    // 1. IFrame Code
-    embedIframeCode.value = `<iframe src="${iframeUrl}" width="100%" height="500" style="border: 1px solid var(--border-color, #ddd); border-radius: 8px;" allowfullscreen></iframe>`;
-    
-    // 2. Script Code (JSON config structure)
-    const verticesWithCoords = plotter.vertices.map(v => {
-      const simNode = plotter.physicsLayout.nodeMap.get(v.id);
-      const isPinned = plotter.pinnedNodeIds.has(v.id);
-      return {
-        id: v.id,
-        label: v.label,
-        x: simNode ? parseFloat(simNode.x.toFixed(2)) : undefined,
-        y: simNode ? parseFloat(simNode.y.toFixed(2)) : undefined,
-        pinned: isPinned ? true : undefined
-      };
-    });
-    
-    const embedData = {
-      vertices: verticesWithCoords,
-      hyperedges: plotter.hyperedges.map(e => ({
-        id: e.id,
-        vertices: e.vertices,
-        color: e.color
-      })),
-      options: plotter.options
-    };
-    
-    embedScriptCode.value = `<div id="hypergraph-embed-container" style="width: 100%; height: 500px; position: relative;"></div>
-<script type="module">
-  import { HypergraphPlotter } from 'https://cdn.jsdelivr.net/npm/hypergraph-plotter@latest/hypergraph-plotter.js';
-  const container = document.getElementById('hypergraph-embed-container');
-  const plotter = new HypergraphPlotter(container, ${JSON.stringify(embedData.options, null, 2).split('\n').join('\n  ')});
-  plotter.setData(${JSON.stringify({ vertices: embedData.vertices, hyperedges: embedData.hyperedges }, null, 2).split('\n').join('\n  ')});
-</script>`;
-
-    modalEmbedOverlay.classList.add('active');
+  // Modal tab switching listeners
+  tabBtnData.addEventListener('click', () => {
+    tabBtnData.classList.add('active');
+    tabBtnEmbed.classList.remove('active');
+    panelData.style.display = 'flex';
+    panelEmbed.style.display = 'none';
+    modalFooter.style.display = 'flex';
   });
 
-  btnModalEmbedClose.addEventListener('click', () => {
-    modalEmbedOverlay.classList.remove('active');
-  });
-
-  modalEmbedOverlay.addEventListener('click', (e) => {
-    if (e.target === modalEmbedOverlay) {
-      modalEmbedOverlay.classList.remove('active');
-    }
+  tabBtnEmbed.addEventListener('click', () => {
+    tabBtnEmbed.classList.add('active');
+    tabBtnData.classList.remove('active');
+    panelEmbed.style.display = 'flex';
+    panelData.style.display = 'none';
+    modalFooter.style.display = 'none';
   });
 
   const setupClipboardCopy = (btn, textarea) => {
@@ -1071,7 +1091,28 @@ function initControllerEvents() {
   };
 
   setupClipboardCopy(btnCopyEmbedIframe, embedIframeCode);
-  setupClipboardCopy(btnCopyEmbedScript, embedScriptCode);
+
+  if (embedOptUi) {
+    const onEmbedOptChange = () => updateEmbedCodes();
+    embedOptUi.addEventListener('change', onEmbedOptChange);
+    embedOptCamera.addEventListener('change', onEmbedOptChange);
+    embedOptNodes.addEventListener('change', onEmbedOptChange);
+    embedOptControls.addEventListener('change', onEmbedOptChange);
+  }
+
+  btnCopyEmbedUrl.addEventListener('click', () => {
+    navigator.clipboard.writeText(currentEmbedUrl).then(() => {
+      const origText = btnCopyEmbedUrl.textContent;
+      btnCopyEmbedUrl.textContent = 'Copied!';
+      btnCopyEmbedUrl.style.backgroundColor = 'var(--success-color, #10b981)';
+      btnCopyEmbedUrl.style.color = '#ffffff';
+      setTimeout(() => {
+        btnCopyEmbedUrl.textContent = origText;
+        btnCopyEmbedUrl.style.backgroundColor = '';
+        btnCopyEmbedUrl.style.color = '';
+      }, 1500);
+    });
+  });
 
   window.addEventListener('resize', () => {
     const w = canvasElement.clientWidth || 800;
@@ -1090,14 +1131,19 @@ function init() {
   // Detect and apply embed mode settings
   const urlParams = new URLSearchParams(window.location.search);
   const isEmbed = urlParams.get('embed') === 'true';
+  const showUI = urlParams.get('ui') === 'true';
+  const showControls = urlParams.get('controls') === 'true';
+  
   if (isEmbed) {
     document.body.classList.add('embed-mode');
     const appRoot = document.getElementById('app-root');
     if (appRoot) appRoot.classList.add('embed-mode');
     const sidebar = document.getElementById('control-sidebar');
-    if (sidebar) sidebar.style.display = 'none';
+    if (sidebar) sidebar.style.display = showUI ? 'flex' : 'none';
     const helpTooltip = document.getElementById('canvas-help-tooltip');
     if (helpTooltip) helpTooltip.style.display = 'none';
+    const floatingControls = document.getElementById('floating-physics-controls');
+    if (floatingControls) floatingControls.style.display = showControls ? 'flex' : 'none';
   }
 
   // Instantiate the library class on the SVG container element
@@ -1137,6 +1183,19 @@ function init() {
 
       if (!loadedFromHash) {
         loadDefaultGraph();
+      }
+
+      // Apply URL parameter overrides for camera and nodes
+      const cameraParam = urlParams.get('camera');
+      if (cameraParam === 'fixed') {
+        plotter.setOptions({ allowPan: false, allowZoom: false });
+      }
+      const nodesParam = urlParams.get('nodes');
+      if (nodesParam === 'fixed') {
+        plotter.setOptions({ physicsPlaying: false, allowDrag: false });
+        plotter.vertices.forEach(v => {
+          plotter.pinnedNodeIds.add(v.id);
+        });
       }
     });
 }

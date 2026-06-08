@@ -82,6 +82,7 @@ export class HypergraphPlotter {
       pinOnDrag: false,
       allowPan: true,
       allowZoom: true,
+      allowDrag: true,
       initialZoom: null,
 
       // Force-directed layout physics parameters
@@ -246,10 +247,12 @@ export class HypergraphPlotter {
       const vertexGroup = target.closest('.vertex');
       if (vertexGroup) {
         const vId = vertexGroup.getAttribute('data-id');
-        this.draggedNodeId = vId;
-        this.physicsLayout.draggedNodeId = vId;
-        if (this.onNodeDragged) {
-          this.onNodeDragged(vId, 'start');
+        if (this.options.allowDrag !== false) {
+          this.draggedNodeId = vId;
+          this.physicsLayout.draggedNodeId = vId;
+          if (this.onNodeDragged) {
+            this.onNodeDragged(vId, 'start');
+          }
         }
         return;
       }
@@ -257,10 +260,12 @@ export class HypergraphPlotter {
       const hubElement = target.closest('.hub');
       if (hubElement) {
         const hubId = hubElement.getAttribute('data-hub-id');
-        this.draggedNodeId = hubId;
-        this.physicsLayout.draggedNodeId = hubId;
-        if (this.onNodeDragged) {
-          this.onNodeDragged(hubId, 'start');
+        if (this.options.allowDrag !== false) {
+          this.draggedNodeId = hubId;
+          this.physicsLayout.draggedNodeId = hubId;
+          if (this.onNodeDragged) {
+            this.onNodeDragged(hubId, 'start');
+          }
         }
         return;
       }
