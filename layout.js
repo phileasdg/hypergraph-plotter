@@ -149,8 +149,8 @@ export class BipartiteForceLayout {
         targetX: target.targetX,
         targetY: target.targetY,
         componentId: target.componentId !== undefined ? target.componentId : 0,
-        x: oldNode ? oldNode.x : target.spawnX + Math.cos(angle) * radius,
-        y: oldNode ? oldNode.y : target.spawnY + Math.sin(angle) * radius,
+        x: (v.x !== undefined && typeof v.x === 'number' && !isNaN(v.x)) ? v.x : (oldNode ? oldNode.x : target.spawnX + Math.cos(angle) * radius),
+        y: (v.y !== undefined && typeof v.y === 'number' && !isNaN(v.y)) ? v.y : (oldNode ? oldNode.y : target.spawnY + Math.sin(angle) * radius),
         vx: oldNode ? oldNode.vx : 0,
         vy: oldNode ? oldNode.vy : 0
       };

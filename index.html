@@ -34,6 +34,7 @@
           
           <div class="btn-group">
             <button class="btn btn-secondary btn-sm" id="btn-modal-import-export" style="font-size:0.85rem; padding: 8px 10px;">Import / Export</button>
+            <button class="btn btn-secondary btn-sm" id="btn-modal-embed" style="font-size:0.85rem; padding: 8px 10px;">Embed</button>
             <button class="btn btn-danger btn-sm" id="btn-clear-canvas" style="font-size:0.85rem; padding: 8px 10px;">Clear</button>
           </div>
         </section>
@@ -448,6 +449,33 @@
           </div>
           <button class="btn btn-primary btn-sm" id="btn-import-data"
             style="font-size: 0.8rem; padding: 6px 14px; min-width: 70px;">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Embed Modal Overlay -->
+    <div class="modal-overlay" id="modal-embed-overlay">
+      <div class="modal" style="width: 550px;">
+        <div class="modal-header">
+          <h3>Embed this hypergraph</h3>
+          <button class="modal-close" id="btn-modal-embed-close">&times;</button>
+        </div>
+        <div class="modal-body" style="gap: 12px; padding: 20px;">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">
+            Choose an embed option to display this interactive hypergraph on your website or blog:
+          </p>
+          
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Option 1: IFrame Embed (Recommended for blogs/Medium/Substack)</div>
+            <textarea id="embed-iframe-code" readonly style="height: 70px; font-family: var(--font-mono); font-size: 0.72rem; width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; resize: none; background: var(--bg-base); color: var(--text-primary);"></textarea>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-embed-iframe" style="margin-top: 6px; font-size: 0.75rem; padding: 4px 10px;">Copy IFrame Code</button>
+          </div>
+          
+          <div>
+            <div style="font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Option 2: Inline Script Code (For custom websites/HTML)</div>
+            <textarea id="embed-script-code" readonly style="height: 100px; font-family: var(--font-mono); font-size: 0.72rem; width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; resize: none; background: var(--bg-base); color: var(--text-primary);"></textarea>
+            <button class="btn btn-secondary btn-sm" id="btn-copy-embed-script" style="margin-top: 6px; font-size: 0.75rem; padding: 4px 10px;">Copy Script Code</button>
+          </div>
         </div>
       </div>
     </div>
