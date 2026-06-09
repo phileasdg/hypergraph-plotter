@@ -2,30 +2,25 @@
 
 Here is a list of long-term goals and features planned for the Hypergraph Plotter:
 
-## 1. Interactive embeds & iframe generator (Completed)
-- [x] Enable users to generate a self-contained iframe snippet or embed code for their designed hypergraphs.
-- [x] Allow researchers to easily display interactive, pannable/zoomable hypergraph plots on their personal academic sites or blogs.
-- [x] Support reading configuration parameters from query parameters or serialized base64 string states directly in the embed URL.
-
-## 2. Advanced coordinate control (manual node positioning)
+## 1. Advanced coordinate control (manual node positioning)
 - Introduce an advanced settings panel ◊or custom JSON schema option allowing users to specify the exact coordinates `(x, y)` of every node.
 - Allow scientific researchers to lock positions to pre-computed coordinate grids or layouts generated in external environments (e.g. Mathematica, NetworkX, R).
 - Provide a coordinate text table editor in the UI to inspect, copy, and edit exact position values programmatically.
 
-## 3. Mobile optimization
+## 2. Mobile optimization
 - Adapt the web app to work well on mobile.
 
-## 4. Multilayer visualization
+## 3. Multilayer visualization
 - Add an option to visualize a hypergraph as a multilayer, where each layer contains hyperedges of a given order.
 
-## 5. Hyperedge labeling
+## 4. Hyperedge labeling
 - Add the option to name hyperedges, and show hyperedge labels.
 
-## 6. Outline highlight on hover
+## 5. Outline highlight on hover
 - Add an outline highlight on hover over interactive parts of the hypergraph.
 
-## 7. Hyperedge default names and toggling
+## 6. Hyperedge default names and toggling
 - Mechanism to label hyperedges (with a default name for each hyperedge), which should be toggled off display-wise by default.
 
-## 8. Selectable and modifiable hyperedges
+## 7. Selectable and modifiable hyperedges
 - Make the hyperedges selectable by clicking hyperedge blobs. Selected blobs should be modifiable (allowing users to change the name/label and color of the blob, and other visual styling settings).
