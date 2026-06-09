@@ -1,6 +1,6 @@
 {
   "name": "hypergraph-plotter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "An interactive, client-side visualizer and vector layout engine designed for mathematical hypergraphs.",
   "type": "module",
   "main": "hypergraph-plotter.js",

@@ -81,8 +81,8 @@ export class HypergraphPlotter {
       physicsPlaying: true,
       pinOnDrag: false,
       allowPan: true,
-      allowZoom: true,
       allowDrag: true,
+      hidePinDashes: false,
       initialZoom: null,
 
       // Force-directed layout physics parameters
@@ -495,9 +495,10 @@ export class HypergraphPlotter {
         circle.setAttribute('cy', String(hubNode.y));
         circle.setAttribute('r', '4');
         circle.setAttribute('fill', edgeColor);
-        circle.setAttribute('stroke', isHubPinned ? 'var(--primary, #3b82f6)' : '#ffffff');
-        circle.setAttribute('stroke-width', isHubPinned ? '1.5px' : '1px');
-        if (isHubPinned) {
+        const showHubPinnedStyle = isHubPinned && !this.options.hidePinDashes;
+        circle.setAttribute('stroke', showHubPinnedStyle ? 'var(--primary, #3b82f6)' : '#ffffff');
+        circle.setAttribute('stroke-width', showHubPinnedStyle ? '1.5px' : '1px');
+        if (showHubPinnedStyle) {
           circle.setAttribute('stroke-dasharray', '2,1');
         }
         circle.setAttribute('fill-opacity', '0.5');
@@ -577,7 +578,7 @@ export class HypergraphPlotter {
         }
       }
 
-      if (isPinned) {
+      if (isPinned && !this.options.hidePinDashes) {
         shapeEl.setAttribute('stroke-dasharray', '3,2');
       }
       g.appendChild(shapeEl);

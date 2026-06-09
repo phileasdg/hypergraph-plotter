@@ -1192,7 +1192,7 @@ function init() {
       }
       const nodesParam = urlParams.get('nodes');
       if (nodesParam === 'fixed') {
-        plotter.setOptions({ physicsPlaying: false, allowDrag: false });
+        plotter.setOptions({ physicsPlaying: false, allowDrag: false, hidePinDashes: true });
         plotter.vertices.forEach(v => {
           plotter.pinnedNodeIds.add(v.id);
         });
