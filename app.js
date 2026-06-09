@@ -4,6 +4,54 @@ import { HypergraphPlotter } from './hypergraph-plotter.js';
 let plotter = null;
 let editingEdgeId = null;
 
+function escapeHtmlAttr(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function formatVertexForInput(label) {
+  if (!label) return '';
+  const str = String(label);
+  if (str.includes(',') || str.includes('"')) {
+    return `"${str.replace(/"/g, '\\"')}"`;
+  }
+  return str;
+}
+
+function parseCommaList(str) {
+  if (!str) return [];
+  const parts = [];
+  let current = '';
+  let inQuotes = false;
+  let i = 0;
+  while (i < str.length) {
+    const char = str[i];
+    if (char === '\\' && i + 1 < str.length && str[i + 1] === '"') {
+      current += '"';
+      i += 2;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+      i++;
+    } else if (char === ',' && !inQuotes) {
+      parts.push(current.trim());
+      current = '';
+      i++;
+    } else {
+      current += char;
+      i++;
+    }
+  }
+  if (current.trim() || parts.length === 0) {
+    parts.push(current.trim());
+  }
+  return parts.filter(Boolean);
+}
+
 // DOM Control References
 const canvasElement = document.getElementById('hypergraph-canvas');
 
@@ -56,6 +104,7 @@ const selectEdgeStyle = document.getElementById('select-edge-style');
 const edgeColorCustomWrapper = document.getElementById('edge-color-custom-wrapper');
 const inputEdgeColorCustom = document.getElementById('input-edge-color-custom');
 const switchHubs = document.getElementById('switch-hubs');
+const switchHyperedgeLabels = document.getElementById('switch-hyperedge-labels');
 const switchGrid = document.getElementById('switch-grid');
 const gridCustomControls = document.getElementById('grid-custom-controls');
 const inputGridColor = document.getElementById('input-grid-color');
@@ -280,29 +329,38 @@ function updateHyperedgesList() {
     item.className = 'list-item';
 
     const color = edge.color || plotter.getPaletteColor(idx, plotter.hyperedges.length, plotter.options.edgePalette);
-    const isEditing = editingEdgeId === edge.id;
+    const isEditing = editingEdgeId !== null && String(editingEdgeId) === String(edge.id);
 
     if (isEditing) {
       const rawVerticesString = edge.vertices.map(vId => {
         const v = plotter.vertices.find(vn => vn.id === vId);
-        return v ? v.label : vId;
+        return formatVertexForInput(v ? v.label : vId);
       }).join(', ');
+      const currentName = edge.label || '';
 
       item.innerHTML = `
-        <div class="list-item-content">
-          <div class="item-color-pill-wrapper" style="position: relative; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; cursor: pointer;" title="Choose custom edge color">
-            <div class="item-color-pill" style="background-color: ${color}; width: 100%; height: 100%; border-radius: 2px;"></div>
-            <input type="color" class="edge-color-picker" data-edge-color-id="${edge.id}" value="${color.startsWith('hsl') ? plotter.hslToHex(color) : color}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
+        <div class="list-item-content" style="flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 0; width: 100%; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 6px; width: 100%;">
+            <div class="item-color-pill-wrapper" style="position: relative; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; cursor: pointer;" title="Choose custom edge color">
+              <div class="item-color-pill" style="background-color: ${color}; width: 100%; height: 100%; border-radius: 2px;"></div>
+              <input type="color" class="edge-color-picker" data-edge-color-id="${edge.id}" value="${color.startsWith('hsl') ? plotter.hslToHex(color) : color}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); width: 35px; flex-shrink: 0;">Name:</span>
+            <input type="text" class="list-item-name-input" data-edit-name-id="${edge.id}" value="${escapeHtmlAttr(currentName)}" placeholder="${idx + 1}" style="flex: 1; min-width: 0; height: 22px; font-size: 0.75rem; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 3px; background: var(--bg-base); color: var(--text-primary);">
           </div>
-          <input type="text" class="list-item-edit-input" data-edit-input-id="${edge.id}" value="${rawVerticesString}">
+          <div style="display: flex; align-items: center; gap: 6px; margin-left: 16px; width: calc(100% - 16px);">
+            <span style="font-size: 0.72rem; color: var(--text-secondary); width: 35px; flex-shrink: 0;">Nodes:</span>
+            <input type="text" class="list-item-edit-input" data-edit-input-id="${edge.id}" value="${escapeHtmlAttr(rawVerticesString)}" style="flex: 1; min-width: 0; height: 22px; font-size: 0.75rem; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 3px; background: var(--bg-base); color: var(--text-primary);">
+          </div>
         </div>
-        <div class="list-item-actions">
+        <div class="list-item-actions" style="align-self: center;">
           <button class="btn btn-primary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-save-edge-id="${edge.id}">✓</button>
           <button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-cancel-edit-id="${edge.id}">✕</button>
         </div>
       `;
     } else {
-      const labelString = `{${edge.vertices.map(vId => {
+      const edgeName = edge.label || `${idx + 1}`;
+      const labelString = `${edgeName}: {${edge.vertices.map(vId => {
         const v = plotter.vertices.find(vn => vn.id === vId);
         return v ? v.label : vId;
       }).join(', ')}}`;
@@ -313,7 +371,7 @@ function updateHyperedgesList() {
             <div class="item-color-pill" style="background-color: ${color}; width: 100%; height: 100%; border-radius: 2px;"></div>
             <input type="color" class="edge-color-picker" data-edge-color-id="${edge.id}" value="${color.startsWith('hsl') ? plotter.hslToHex(color) : color}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; padding: 0;">
           </div>
-          <span class="item-text">${labelString}</span>
+          <span class="item-text">${escapeHtmlAttr(labelString)}</span>
         </div>
         <div class="list-item-actions">
           ${edge.color ? `<button class="btn btn-secondary btn-sm" style="padding:1px 5px; font-size:0.75rem;" data-reset-edge-color-id="${edge.id}" title="Reset to palette color">↺</button>` : ''}
@@ -328,15 +386,15 @@ function updateHyperedgesList() {
   // Attach dynamic list-item event listeners
   document.querySelectorAll('[data-del-edge-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = parseInt(btn.getAttribute('data-del-edge-id'));
+      const id = btn.getAttribute('data-del-edge-id');
       removeHyperedge(id);
     });
   });
 
   document.querySelectorAll('.edge-color-picker').forEach(picker => {
     picker.addEventListener('change', (e) => {
-      const id = parseInt(picker.getAttribute('data-edge-color-id'));
-      const edge = plotter.hyperedges.find(e => e.id === id);
+      const id = picker.getAttribute('data-edge-color-id');
+      const edge = plotter.hyperedges.find(e => String(e.id) === String(id));
       if (edge) {
         edge.color = e.target.value;
         updateHyperedgesList();
@@ -347,8 +405,8 @@ function updateHyperedgesList() {
 
   document.querySelectorAll('[data-reset-edge-color-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = parseInt(btn.getAttribute('data-reset-edge-color-id'));
-      const edge = plotter.hyperedges.find(e => e.id === id);
+      const id = btn.getAttribute('data-reset-edge-color-id');
+      const edge = plotter.hyperedges.find(e => String(e.id) === String(id));
       if (edge) {
         delete edge.color;
         updateHyperedgesList();
@@ -359,7 +417,7 @@ function updateHyperedgesList() {
 
   document.querySelectorAll('[data-edit-edge-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = parseInt(btn.getAttribute('data-edit-edge-id'));
+      const id = btn.getAttribute('data-edit-edge-id');
       editingEdgeId = id;
       updateHyperedgesList();
     });
@@ -377,25 +435,27 @@ function updateHyperedgesList() {
   });
 
   const saveAction = (id) => {
-    const input = document.querySelector(`[data-edit-input-id="${id}"]`);
-    if (input) {
-      const val = input.value.trim();
-      const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+    const inputVertices = document.querySelector(`[data-edit-input-id="${id}"]`);
+    const inputName = document.querySelector(`[data-edit-name-id="${id}"]`);
+    if (inputVertices && inputName) {
+      const nameVal = inputName.value.trim();
+      const verticesVal = inputVertices.value.trim();
+      const parts = parseCommaList(verticesVal);
       editingEdgeId = null;
-      editHyperedge(id, parts);
+      editHyperedge(id, nameVal, parts);
     }
   };
 
   document.querySelectorAll('[data-save-edge-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = parseInt(btn.getAttribute('data-save-edge-id'));
+      const id = btn.getAttribute('data-save-edge-id');
       saveAction(id);
     });
   });
 
-  document.querySelectorAll('[data-edit-input-id]').forEach(input => {
+  document.querySelectorAll('[data-edit-input-id], [data-edit-name-id]').forEach(input => {
     input.addEventListener('keydown', (e) => {
-      const id = parseInt(input.getAttribute('data-edit-input-id'));
+      const id = input.getAttribute('data-edit-input-id') || input.getAttribute('data-edit-name-id');
       if (e.key === 'Enter') {
         saveAction(id);
       } else if (e.key === 'Escape') {
@@ -449,7 +509,7 @@ function pruneUnusedVertices() {
  * Removes a hyperedge from the plotter state.
  */
 function removeHyperedge(id) {
-  const filteredEdges = plotter.hyperedges.filter(e => e.id !== id);
+  const filteredEdges = plotter.hyperedges.filter(e => String(e.id) !== String(id));
   plotter.setData({
     vertices: plotter.vertices,
     hyperedges: filteredEdges
@@ -465,8 +525,8 @@ function removeHyperedge(id) {
 /**
  * Modifies an existing hyperedge with new vertices, creating new ones if needed.
  */
-function editHyperedge(id, vertexIdentifiers) {
-  const edge = plotter.hyperedges.find(e => e.id === id);
+function editHyperedge(id, name, vertexIdentifiers) {
+  const edge = plotter.hyperedges.find(e => String(e.id) === String(id));
   if (!edge) return;
 
   if (vertexIdentifiers.length === 0) {
@@ -490,6 +550,7 @@ function editHyperedge(id, vertexIdentifiers) {
 
   if (mappedIds.length === 0) return;
 
+  edge.label = name.trim() || undefined;
   edge.vertices = Array.from(new Set(mappedIds));
   pruneUnusedVertices();
 
@@ -685,6 +746,7 @@ function syncCustomizationInputs() {
   switchBoundary.checked = opt.showSubsetBoundary;
   switchEdge.checked = opt.showSubsetEdge;
   switchHubs.checked = opt.showHubs;
+  switchHyperedgeLabels.checked = opt.showHyperedgeLabels;
   switchGrid.checked = opt.showGrid;
   inputGridColor.value = opt.gridColor;
   sliderGridOpacity.value = opt.gridOpacity;
@@ -809,6 +871,10 @@ function initControllerEvents() {
 
   switchHubs.addEventListener('change', (e) => {
     plotter.setOptions({ showHubs: e.target.checked });
+  });
+
+  switchHyperedgeLabels.addEventListener('change', (e) => {
+    plotter.setOptions({ showHyperedgeLabels: e.target.checked });
   });
 
   switchGrid.addEventListener('change', (e) => {
@@ -1111,6 +1177,14 @@ function initControllerEvents() {
         btnCopyEmbedUrl.style.backgroundColor = '';
         btnCopyEmbedUrl.style.color = '';
       }, 1500);
+    });
+  });
+
+  // Collapsible sidebar sections
+  document.querySelectorAll('.sidebar-section:not(#citation-section) .section-title').forEach(title => {
+    title.addEventListener('click', () => {
+      const section = title.closest('.sidebar-section');
+      section.classList.toggle('collapsed');
     });
   });
 

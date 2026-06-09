@@ -32,344 +32,366 @@
         <section class="sidebar-section" id="editor-section">
           <div class="section-title">
             <span>Edit hypergraph</span>
+            <span class="chevron">▼</span>
           </div>
 
-          <div class="list-container" id="hyperedges-list-container" style="margin-bottom: 8px;">
-            <!-- Dynamically populated list of hyperedges -->
-          </div>
-          <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="width: 100%; margin-bottom: 8px;">+ Add hyperedge</button>
-          
-          <div class="btn-group">
-            <button class="btn btn-secondary btn-sm" id="btn-modal-import-export" style="font-size:0.85rem; padding: 8px 10px;">Import / Export</button>
-            <button class="btn btn-danger btn-sm" id="btn-clear-canvas" style="font-size:0.85rem; padding: 8px 10px;">Clear</button>
+          <div class="section-body">
+            <div class="list-container" id="hyperedges-list-container" style="margin-bottom: 8px;">
+              <!-- Dynamically populated list of hyperedges -->
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-add-edge" style="width: 100%; margin-bottom: 8px;">+ Add hyperedge</button>
+            
+            <div class="btn-group">
+              <button class="btn btn-secondary btn-sm" id="btn-modal-import-export" style="font-size:0.85rem; padding: 8px 10px;">Import / Export</button>
+              <button class="btn btn-danger btn-sm" id="btn-clear-canvas" style="font-size:0.85rem; padding: 8px 10px;">Clear</button>
+            </div>
           </div>
         </section>
 
         <!-- Layout Controls -->
-        <section class="sidebar-section" id="layout-section">
+        <section class="sidebar-section collapsed" id="layout-section">
           <div class="section-title">
             <span>Layout</span>
+            <span class="chevron">▼</span>
           </div>
 
-          <!-- Subgroup: Embedding -->
-          <div class="control-subgroup">
-            <div class="subgroup-title">Embedding</div>
-            <div class="control-group">
-              <div class="select-wrapper">
-                <select id="select-layout">
-                  <option value="spring-embedding">Spring embedding (physics)</option>
-                  <option value="radial-embedding">Radial embedding (circular)</option>
-                  <option value="grid-layout">Grid layout</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Spring Embedding Settings (Physics) -->
-          <div id="physics-settings" class="control-subgroup" style="display:flex;">
-            <div class="subgroup-title">Physics</div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Link attraction</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-attraction" min="0.01" max="0.5" step="0.01" value="0.2">
-                <input type="number" id="input-attraction" step="0.01" class="slider-number-input">
+          <div class="section-body">
+            <!-- Subgroup: Embedding -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Embedding</div>
+              <div class="control-group">
+                <div class="select-wrapper">
+                  <select id="select-layout">
+                    <option value="spring-embedding">Spring embedding (physics)</option>
+                    <option value="radial-embedding">Radial embedding (circular)</option>
+                    <option value="grid-layout">Grid layout</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Vertex repulsion</span>
+            <!-- Spring Embedding Settings (Physics) -->
+            <div id="physics-settings" class="control-subgroup" style="display:flex;">
+              <div class="subgroup-title">Physics</div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Link attraction</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-attraction" min="0.01" max="0.5" step="0.01" value="0.2">
+                  <input type="number" id="input-attraction" step="0.01" class="slider-number-input">
+                </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-repulsion" min="500" max="20000" step="500" value="10000">
-                <input type="number" id="input-repulsion" step="500" class="slider-number-input">
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Vertex repulsion</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-repulsion" min="500" max="20000" step="500" value="10000">
+                  <input type="number" id="input-repulsion" step="500" class="slider-number-input">
+                </div>
               </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Hyperedge repulsion</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-hyperedge-repulsion" min="500" max="20000" step="500" value="10000">
+                  <input type="number" id="input-hyperedge-repulsion" step="500" class="slider-number-input">
+                </div>
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Rest length (px)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-rest-length" min="0" max="250" step="5" value="0">
+                  <input type="number" id="input-rest-length" step="5" class="slider-number-input">
+                </div>
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Component spacing</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-component-spacing" min="0" max="500" step="5" value="90">
+                  <input type="number" id="input-component-spacing" step="5" class="slider-number-input">
+                </div>
+              </div>
+
+
+              <div class="toggle-group" id="toggle-pin-on-drag-group" style="margin-top: 4px;">
+                <span class="toggle-label">Pin nodes when dragged</span>
+                <label class="switch" for="switch-pin-on-drag">
+                  <input type="checkbox" id="switch-pin-on-drag">
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" id="btn-unpin-all" style="width: 100%;">Unpin all nodes</button>
             </div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Hyperedge repulsion</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-hyperedge-repulsion" min="500" max="20000" step="500" value="10000">
-                <input type="number" id="input-hyperedge-repulsion" step="500" class="slider-number-input">
-              </div>
-            </div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Rest length (px)</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-rest-length" min="0" max="250" step="5" value="0">
-                <input type="number" id="input-rest-length" step="5" class="slider-number-input">
-              </div>
-            </div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Component spacing</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-component-spacing" min="0" max="500" step="5" value="90">
-                <input type="number" id="input-component-spacing" step="5" class="slider-number-input">
-              </div>
-            </div>
-
-
-            <div class="toggle-group" id="toggle-pin-on-drag-group" style="margin-top: 4px;">
-              <span class="toggle-label">Pin nodes when dragged</span>
-              <label class="switch" for="switch-pin-on-drag">
-                <input type="checkbox" id="switch-pin-on-drag">
-                <span class="slider-round"></span>
-              </label>
-            </div>
-
-            <button class="btn btn-secondary btn-sm" id="btn-unpin-all" style="width: 100%;">Unpin all nodes</button>
           </div>
         </section>
 
         <!-- Theme / Style Options -->
-        <section class="sidebar-section" id="styles-section">
+        <section class="sidebar-section collapsed" id="styles-section">
           <div class="section-title">
             <span>Styling</span>
+            <span class="chevron">▼</span>
           </div>
 
-          <!-- Subgroup: Canvas & grid -->
-          <div class="control-subgroup">
-            <div class="subgroup-title">Canvas & grid</div>
+          <div class="section-body">
+            <!-- Subgroup: Canvas & View -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Canvas & View</div>
 
-            <div class="control-group">
-              <label for="select-canvas-bg">Canvas background</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <div class="select-wrapper" style="flex: 1;">
-                  <select id="select-canvas-bg">
-                    <option value="transparent" selected>Transparent</option>
-                    <option value="white">Pure white</option>
-                    <option value="light-grey">Off-white</option>
-                    <option value="dark-slate">Dark slate</option>
-                    <option value="custom" style="display:none;">Custom</option>
-                  </select>
-                </div>
-                <div class="color-picker-wrapper" title="Choose custom background color">
-                  <input type="color" id="input-canvas-bg-custom" value="#ffffff">
-                </div>
-              </div>
-            </div>
-
-            <div class="toggle-group" id="toggle-grid-group">
-              <span class="toggle-label">Show background grid</span>
-              <label class="switch" for="switch-grid">
-                <input type="checkbox" id="switch-grid">
-                <span class="slider-round"></span>
-              </label>
-            </div>
-
-            <div id="grid-custom-controls" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <label for="input-grid-color" style="margin: 0;">Grid line color</label>
-                <div class="color-picker-wrapper" title="Choose grid line color">
-                  <input type="color" id="input-grid-color" value="#000000">
+              <div class="control-group">
+                <label for="select-canvas-bg">Canvas background</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select id="select-canvas-bg">
+                      <option value="transparent" selected>Transparent</option>
+                      <option value="white">Pure white</option>
+                      <option value="light-grey">Off-white</option>
+                      <option value="dark-slate">Dark slate</option>
+                      <option value="custom" style="display:none;">Custom</option>
+                    </select>
+                  </div>
+                  <div class="color-picker-wrapper" title="Choose custom background color">
+                    <input type="color" id="input-canvas-bg-custom" value="#ffffff">
+                  </div>
                 </div>
               </div>
 
-              <div class="slider-container">
-                <div class="slider-header">
-                  <span>Grid line opacity (0-0.5)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <input type="range" id="slider-grid-opacity" min="0.0" max="0.5" step="0.01" value="0.04">
-                  <input type="number" id="input-grid-opacity" step="0.01" class="slider-number-input">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Subgroup: Nodes & labels -->
-          <div class="control-subgroup">
-            <div class="subgroup-title">Nodes & labels</div>
-
-            <div class="control-group">
-              <label for="select-theme">Plot theme</label>
-              <div class="select-wrapper">
-                <select id="select-theme">
-                  <option value="name-labeled">Name labeled (default)</option>
-                  <option value="detailed">Detailed (small node + offset label)</option>
-                  <option value="clean">Minimal (colored nodes, no labels)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control-group" id="font-family-control-group">
-              <label for="select-font-family">Label font family</label>
-              <div class="select-wrapper">
-                <select id="select-font-family">
-                  <option value="sans-serif">Sans-serif (Outfit)</option>
-                  <option value="serif">Serif (Times New Roman)</option>
-                  <option value="monospace">Monospace (JetBrains Mono)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="slider-container" id="font-size-slider-container">
-              <div class="slider-header">
-                <span>Label font size (px)</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
-                <input type="number" id="input-label-size" step="1" class="slider-number-input">
-              </div>
-            </div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Vertex disk size</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
-                <input type="number" id="input-vertex-size" step="0.01" class="slider-number-input">
-              </div>
-            </div>
-
-            <div class="slider-container">
-              <div class="slider-header">
-                <span>Vertex outline width (px)</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
-                <input type="number" id="input-vertex-outline-width" step="0.1" class="slider-number-input">
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label for="select-vertex-fill">Vertex fill color</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <div class="select-wrapper" style="flex: 1;">
-                  <select id="select-vertex-fill">
-                    <option value="automatic" selected>Automatic</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                <div class="color-picker-wrapper" id="vertex-fill-custom-wrapper" style="display: none;" title="Choose custom vertex fill color">
-                  <input type="color" id="input-vertex-fill-custom" value="#ffffff">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Subgroup: Subset boundaries (blobs) -->
-          <div class="control-subgroup">
-            <div class="subgroup-title">Subset boundaries</div>
-
-            <div class="toggle-group" id="toggle-boundary-group">
-              <span class="toggle-label">Subset boundary (blobs)</span>
-              <label class="switch" for="switch-boundary">
-                <input type="checkbox" id="switch-boundary" checked>
-                <span class="slider-round"></span>
-              </label>
-            </div>
-
-            <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
-              <div class="slider-container" id="boundary-scale-container">
-                <div class="slider-header">
-                  <span>Boundary padding</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
-                  <input type="number" id="input-boundary-scale" step="0.1" class="slider-number-input">
-                </div>
-              </div>
-
-              <div class="slider-container" id="blob-opacity-container">
-                <div class="slider-header">
-                  <span>Blob fill opacity (0-1)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
-                  <input type="number" id="input-blob-opacity" step="0.01" class="slider-number-input">
-                </div>
-              </div>
-
-              <div class="slider-container">
-                <div class="slider-header">
-                  <span>Blob outline width (px)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
-                  <input type="number" id="input-blob-outline-width" step="0.1" class="slider-number-input">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Subgroup: Subset edges & colors -->
-          <div class="control-subgroup">
-            <div class="subgroup-title">Edges & colors</div>
-
-            <div class="toggle-group" id="toggle-edge-group">
-              <span class="toggle-label">Subset edges (curves)</span>
-              <label class="switch" for="switch-edge">
-                <input type="checkbox" id="switch-edge" checked>
-                <span class="slider-round"></span>
-              </label>
-            </div>
-
-            <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
-              <div class="slider-container" id="edge-width-container">
-                <div class="slider-header">
-                  <span>Edge line width (px)</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
-                  <input type="number" id="input-edge-width" step="0.1" class="slider-number-input">
-                </div>
-              </div>
-
-              <div class="toggle-group" id="toggle-hubs-group">
-                <span class="toggle-label">Show control points</span>
-                <label class="switch" for="switch-hubs">
-                  <input type="checkbox" id="switch-hubs">
+              <div class="toggle-group" id="toggle-grid-group">
+                <span class="toggle-label">Show background grid</span>
+                <label class="switch" for="switch-grid">
+                  <input type="checkbox" id="switch-grid">
                   <span class="slider-round"></span>
                 </label>
               </div>
+
+              <div id="grid-custom-controls" style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <label for="input-grid-color" style="margin: 0;">Grid line color</label>
+                  <div class="color-picker-wrapper" title="Choose grid line color">
+                    <input type="color" id="input-grid-color" value="#000000">
+                  </div>
+                </div>
+
+                <div class="slider-container">
+                  <div class="slider-header">
+                    <span>Grid line opacity (0-0.5)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="range" id="slider-grid-opacity" min="0.0" max="0.5" step="0.01" value="0.04">
+                    <input type="number" id="input-grid-opacity" step="0.01" class="slider-number-input">
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="control-group">
-              <label for="select-edge-style">Edge/blob color palette</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <div class="select-wrapper" style="flex: 1;">
-                  <select id="select-edge-style">
-                    <option value="rainbow">Rainbow</option>
-                    <option value="grayscale">Grayscale</option>
-                    <option value="pastel">Pastel</option>
-                    <option value="cool-ice">Cool ice</option>
-                    <option value="warm-sunset">Warm sunset</option>
-                    <option value="ocean-breeze">Ocean breeze</option>
-                    <option value="forest-earth">Forest earth</option>
-                    <option value="neon-glow">Neon glow</option>
-                    <option value="viridis">Viridis</option>
-                    <option value="plasma">Plasma</option>
-                    <option value="cividis">Cividis</option>
-                    <option value="magma">Magma</option>
-                    <option value="inferno">Inferno</option>
-                    <option value="cyberpunk">Cyberpunk</option>
-                    <option value="aurora">Aurora</option>
-                    <option value="desert-sand">Desert sand</option>
-                    <option value="botanical">Botanical</option>
-                    <option value="berry-wine">Berry wine</option>
-                    <option value="academic-bold">Academic bold</option>
-                    <option value="academic-set1">Academic set 1</option>
-                    <option value="academic-set2">Academic set 2</option>
-                    <option value="academic-dark">Academic dark</option>
-                    <option value="academic-paired">Academic paired</option>
-                    <option value="custom-solid">Custom solid</option>
+            <!-- Subgroup: Vertices (Nodes) -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Vertices (Nodes)</div>
+
+              <div class="control-group">
+                <label for="select-theme">Plot theme</label>
+                <div class="select-wrapper">
+                  <select id="select-theme">
+                    <option value="name-labeled">Name labeled (default)</option>
+                    <option value="detailed">Detailed (small node + offset label)</option>
+                    <option value="clean">Minimal (colored nodes, no labels)</option>
                   </select>
                 </div>
-                <div class="color-picker-wrapper" id="edge-color-custom-wrapper" style="display: none;" title="Choose custom solid edge color">
-                  <input type="color" id="input-edge-color-custom" value="#3b82f6">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Vertex disk size</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-vertex-size" min="0.05" max="0.30" step="0.01" value="0.15">
+                  <input type="number" id="input-vertex-size" step="0.01" class="slider-number-input">
+                </div>
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span>Vertex outline width (px)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-vertex-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+                  <input type="number" id="input-vertex-outline-width" step="0.1" class="slider-number-input">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label for="select-vertex-fill">Vertex fill color</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select id="select-vertex-fill">
+                      <option value="automatic" selected>Automatic</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  <div class="color-picker-wrapper" id="vertex-fill-custom-wrapper" style="display: none;" title="Choose custom vertex fill color">
+                    <input type="color" id="input-vertex-fill-custom" value="#ffffff">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subgroup: Hyperedge Blobs (Subset Boundaries) -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Hyperedge Blobs</div>
+
+              <div class="toggle-group" id="toggle-boundary-group">
+                <span class="toggle-label">Subset boundary (blobs)</span>
+                <label class="switch" for="switch-boundary">
+                  <input type="checkbox" id="switch-boundary" checked>
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+
+              <div id="boundary-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+                <div class="slider-container" id="boundary-scale-container">
+                  <div class="slider-header">
+                    <span>Boundary padding</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="range" id="slider-boundary-scale" min="1.0" max="4.0" step="0.1" value="2.0">
+                    <input type="number" id="input-boundary-scale" step="0.1" class="slider-number-input">
+                  </div>
+                </div>
+
+                <div class="slider-container" id="blob-opacity-container">
+                  <div class="slider-header">
+                    <span>Blob fill opacity (0-1)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="range" id="slider-blob-opacity" min="0.0" max="0.8" step="0.02" value="0.18">
+                    <input type="number" id="input-blob-opacity" step="0.01" class="slider-number-input">
+                  </div>
+                </div>
+
+                <div class="slider-container">
+                  <div class="slider-header">
+                    <span>Blob outline width (px)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="range" id="slider-blob-outline-width" min="0.0" max="5.0" step="0.5" value="1.5">
+                    <input type="number" id="input-blob-outline-width" step="0.1" class="slider-number-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subgroup: Hyperedge Curves & Colors -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Hyperedge Curves & Colors</div>
+
+              <div class="toggle-group" id="toggle-edge-group">
+                <span class="toggle-label">Subset edges (curves)</span>
+                <label class="switch" for="switch-edge">
+                  <input type="checkbox" id="switch-edge" checked>
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+
+              <div id="edge-controls-subgroup" style="display:flex; flex-direction:column; gap:12px;">
+                <div class="slider-container" id="edge-width-container">
+                  <div class="slider-header">
+                    <span>Edge line width (px)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="range" id="slider-edge-width" min="0.5" max="6.0" step="0.5" value="2.0">
+                    <input type="number" id="input-edge-width" step="0.1" class="slider-number-input">
+                  </div>
+                </div>
+
+                <div class="toggle-group" id="toggle-hubs-group">
+                  <span class="toggle-label">Show control points</span>
+                  <label class="switch" for="switch-hubs">
+                    <input type="checkbox" id="switch-hubs">
+                    <span class="slider-round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label for="select-edge-style">Edge/blob color palette</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <div class="select-wrapper" style="flex: 1;">
+                    <select id="select-edge-style">
+                      <option value="rainbow">Rainbow</option>
+                      <option value="grayscale">Grayscale</option>
+                      <option value="pastel">Pastel</option>
+                      <option value="cool-ice">Cool ice</option>
+                      <option value="warm-sunset">Warm sunset</option>
+                      <option value="ocean-breeze">Ocean breeze</option>
+                      <option value="forest-earth">Forest earth</option>
+                      <option value="neon-glow">Neon glow</option>
+                      <option value="viridis">Viridis</option>
+                      <option value="plasma">Plasma</option>
+                      <option value="cividis">Cividis</option>
+                      <option value="magma">Magma</option>
+                      <option value="inferno">Inferno</option>
+                      <option value="cyberpunk">Cyberpunk</option>
+                      <option value="aurora">Aurora</option>
+                      <option value="desert-sand">Desert sand</option>
+                      <option value="botanical">Botanical</option>
+                      <option value="berry-wine">Berry wine</option>
+                      <option value="academic-bold">Academic bold</option>
+                      <option value="academic-set1">Academic set 1</option>
+                      <option value="academic-set2">Academic set 2</option>
+                      <option value="academic-dark">Academic dark</option>
+                      <option value="academic-paired">Academic paired</option>
+                      <option value="custom-solid">Custom solid</option>
+                    </select>
+                  </div>
+                  <div class="color-picker-wrapper" id="edge-color-custom-wrapper" style="display: none;" title="Choose custom solid edge color">
+                    <input type="color" id="input-edge-color-custom" value="#3b82f6">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subgroup: Labels & Typography -->
+            <div class="control-subgroup">
+              <div class="subgroup-title">Labels & Typography</div>
+
+              <div class="toggle-group" id="toggle-hyperedge-labels-group">
+                <span class="toggle-label">Show hyperedge labels</span>
+                <label class="switch" for="switch-hyperedge-labels">
+                  <input type="checkbox" id="switch-hyperedge-labels">
+                  <span class="slider-round"></span>
+                </label>
+              </div>
+
+              <div class="control-group" id="font-family-control-group" style="margin-top: 4px;">
+                <label for="select-font-family">Label font family</label>
+                <div class="select-wrapper">
+                  <select id="select-font-family">
+                    <option value="sans-serif">Sans-serif (Outfit)</option>
+                    <option value="serif">Serif (Times New Roman)</option>
+                    <option value="monospace">Monospace (JetBrains Mono)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="slider-container" id="font-size-slider-container">
+                <div class="slider-header">
+                  <span>Label font size (px)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="range" id="slider-label-size" min="8" max="24" step="1" value="12">
+                  <input type="number" id="input-label-size" step="1" class="slider-number-input">
                 </div>
               </div>
             </div>

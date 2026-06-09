@@ -2,9 +2,6 @@ import { Vec, getBlobPath } from './geom.js';
 import { BipartiteForceLayout, circularLayout, gridLayout } from './layout.js';
 
 function getNodeHullPoints(node) {
-  if (node.isHub) {
-    return [{ x: node.x, y: node.y }];
-  }
   if (node.shape === 'rect') {
     const x = node.x;
     const y = node.y;
@@ -38,7 +35,6 @@ function getNodeHullPoints(node) {
       ];
     }
   }
-  // Circle / default
   return [{ x: node.x, y: node.y }];
 }
 
@@ -81,8 +77,10 @@ export class HypergraphPlotter {
       physicsPlaying: true,
       pinOnDrag: false,
       allowPan: true,
+      allowZoom: true,
       allowDrag: true,
       hidePinDashes: false,
+      showHyperedgeLabels: false,
       initialZoom: null,
 
       // Force-directed layout physics parameters
@@ -215,6 +213,10 @@ export class HypergraphPlotter {
     this.labelsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.labelsLayer.setAttribute('id', `${this.uuid}-labels-layer`);
     this.zoomLayer.appendChild(this.labelsLayer);
+
+    this.hyperedgeLabelsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    this.hyperedgeLabelsLayer.setAttribute('id', `${this.uuid}-hyperedge-labels-layer`);
+    this.zoomLayer.appendChild(this.hyperedgeLabelsLayer);
 
     this._updateBackground();
   }
@@ -409,7 +411,7 @@ export class HypergraphPlotter {
 
         const hubNode = this.physicsLayout.nodeMap.get(`_hub_${edge.id}`);
         if (hubNode) {
-          coords.push({ x: hubNode.x, y: hubNode.y });
+          coords.push(...getNodeHullPoints(hubNode));
         }
 
         const blobRadius = vertexRadius * this.options.boundaryScale;
@@ -617,6 +619,79 @@ export class HypergraphPlotter {
         }
       }
     });
+
+    // 6. Draw Hyperedge Labels
+    this.hyperedgeLabelsLayer.innerHTML = '';
+    if (this.options.showHyperedgeLabels) {
+      const fontFamilyStr = this.options.labelFontFamily === 'monospace' ? 'JetBrains Mono, monospace' :
+                            (this.options.labelFontFamily === 'serif' ? 'Times New Roman, serif' : 'Outfit, sans-serif');
+      
+      const isDarkCanvas = this.options.canvasBg === 'dark-slate';
+      const labelColor = isDarkCanvas ? '#e9ecef' : '#374151';
+
+      this.hyperedges.forEach((edge, idx) => {
+        const hubNode = this.physicsLayout.nodeMap.get(`_hub_${edge.id}`);
+        if (!hubNode) return;
+
+        const originalLabel = edge.label || `${idx + 1}`;
+        let labelText = originalLabel;
+        if (labelText.length > 500) {
+          labelText = labelText.substring(0, 497) + '...';
+        }
+
+        // Draw background container if the hub is a capsule or rect
+        if (hubNode.shape === 'capsule' || hubNode.shape === 'rect') {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          const w = hubNode.width || 20;
+          const h = hubNode.height || 20;
+          rect.setAttribute('x', String(hubNode.x - w / 2));
+          rect.setAttribute('y', String(hubNode.y - h / 2));
+          rect.setAttribute('width', String(w));
+          rect.setAttribute('height', String(h));
+          if (hubNode.shape === 'capsule') {
+            rect.setAttribute('rx', String(h / 2));
+            rect.setAttribute('ry', String(h / 2));
+          } else {
+            rect.setAttribute('rx', '6');
+            rect.setAttribute('ry', '6');
+          }
+          rect.setAttribute('fill', isDarkCanvas ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.85)');
+          rect.setAttribute('stroke', isDarkCanvas ? '#475569' : '#cbd5e1');
+          rect.setAttribute('stroke-width', '1px');
+          rect.setAttribute('pointer-events', 'none');
+          this.hyperedgeLabelsLayer.appendChild(rect);
+        }
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('font-family', fontFamilyStr);
+        text.setAttribute('font-size', `${Math.max(10, this.options.labelFontSize - 1)}px`);
+        text.setAttribute('fill', labelColor);
+        text.setAttribute('font-weight', '600');
+        text.setAttribute('pointer-events', 'none');
+
+        // Add hover tooltip with the full original label
+        const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        titleEl.textContent = originalLabel;
+        text.appendChild(titleEl);
+
+        const lines = hubNode.lines || [labelText];
+        const fontSize = Math.max(10, this.options.labelFontSize - 1);
+        const lineHeight = fontSize * 1.2;
+        const startY = hubNode.y - ((lines.length - 1) * lineHeight) / 2 + (fontSize * 0.35);
+
+        lines.forEach((lineText, lIdx) => {
+          const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+          tspan.textContent = lineText;
+          tspan.setAttribute('x', String(hubNode.x));
+          tspan.setAttribute('y', String(startY + lIdx * lineHeight));
+          tspan.setAttribute('text-anchor', 'middle');
+          tspan.setAttribute('style', `paint-order: stroke fill; stroke: ${isDarkCanvas ? 'var(--bg-base, #1e293b)' : '#ffffff'}; stroke-width: 3px; stroke-linejoin: round;`);
+          text.appendChild(tspan);
+        });
+
+        this.hyperedgeLabelsLayer.appendChild(text);
+      });
+    }
   }
 
   /**

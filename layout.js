@@ -138,8 +138,8 @@ export class BipartiteForceLayout {
       const radius = numComponents <= 1 ? (130 + Math.random() * 40) : (30 + Math.random() * 20);
 
       let label = v.label || String(v.id);
-      if (label.length > 80) {
-        label = label.substring(0, 77) + '...';
+      if (label.length > 500) {
+        label = label.substring(0, 497) + '...';
       }
 
       const node = {
@@ -159,7 +159,7 @@ export class BipartiteForceLayout {
     });
 
     // 2. Add Hyperedge Hubs (Only for hyperedges containing more than one vertex)
-    hyperedges.forEach(e => {
+    hyperedges.forEach((e, idx) => {
       if (e.vertices.length <= 1) return;
       const hubId = `_hub_${e.id}`;
       const oldNode = oldNodeMap.get(hubId);
@@ -189,7 +189,7 @@ export class BipartiteForceLayout {
         id: hubId,
         edgeId: e.id,
         isHub: true,
-        label: '',
+        label: e.label || `${idx + 1}`,
         targetX: target.targetX,
         targetY: target.targetY,
         componentId: target.componentId !== undefined ? target.componentId : 0,
@@ -299,23 +299,23 @@ export class BipartiteForceLayout {
           continue;
         }
 
-        // Compute radius for node 1: same-component repulsion uses isotropic bounding circles (n1.radius)
-        // to prevent vibration/jitter. Cross-component uses direction-sensitive ray-cast for accuracy.
+        // Compute radius for node 1: shapes like capsules/rects use direction-sensitive
+        // ray-casting for accuracy, allowing nodes to sit closer along the narrower axis.
         let r1 = 0;
-        if (n1.isHub) {
-          r1 = n1.radius || 4;
-        } else if (!sameComp && (n1.shape === 'capsule' || n1.shape === 'rect')) {
+        if (!sameComp && (n1.shape === 'capsule' || n1.shape === 'rect')) {
           r1 = Math.min(n1.halfWidth / Math.max(0.0001, Math.abs(ux)), n1.halfHeight / Math.max(0.0001, Math.abs(uy)));
+        } else if (n1.isHub) {
+          r1 = n1.radius || 4;
         } else {
           r1 = n1.radius || 12;
         }
 
         // Compute radius for node 2
         let r2 = 0;
-        if (n2.isHub) {
-          r2 = n2.radius || 4;
-        } else if (!sameComp && (n2.shape === 'capsule' || n2.shape === 'rect')) {
+        if (!sameComp && (n2.shape === 'capsule' || n2.shape === 'rect')) {
           r2 = Math.min(n2.halfWidth / Math.max(0.0001, Math.abs(ux)), n2.halfHeight / Math.max(0.0001, Math.abs(uy)));
+        } else if (n2.isHub) {
+          r2 = n2.radius || 4;
         } else {
           r2 = n2.radius || 12;
         }
@@ -402,7 +402,17 @@ export class BipartiteForceLayout {
       // Account for the vertex's own radius in the spring's rest length.
       // This gives larger nodes more "slack" (space to repel each other) by pulling
       // based on their surface distance rather than center distance.
-      const effRestLength = this.restLength + (vNode.radius || 12);
+      let hOffset = 0;
+      if (hNode.isHub && this.options.showHyperedgeLabels) {
+        if (hNode.shape === 'capsule' || hNode.shape === 'rect') {
+          const ux = dx / d; // direction from hub to vertex: dx = vNode.x - hNode.x
+          const uy = dy / d;
+          hOffset = Math.min(hNode.halfWidth / Math.max(0.0001, Math.abs(ux)), hNode.halfHeight / Math.max(0.0001, Math.abs(uy)));
+        } else {
+          hOffset = hNode.radius || 4;
+        }
+      }
+      const effRestLength = this.restLength + (vNode.radius || 12) + hOffset;
       const force = this.kAttract * (d - effRestLength);
       const fX = (dx / d) * force;
       const fY = (dy / d) * force;
@@ -493,10 +503,55 @@ export class BipartiteForceLayout {
 
     this.nodes.forEach(node => {
       if (node.isHub) {
-        node.shape = 'circle';
-        node.radius = 4;
-        node.halfWidth = 4;
-        node.halfHeight = 4;
+        if (this.options.showHyperedgeLabels) {
+          let label = node.label || '';
+          if (label.length > 500) {
+            label = label.substring(0, 497) + '...';
+          }
+          const L = label.length;
+          const fontSize = Math.max(10, labelFontSize - 1);
+          
+          const targetChars = Math.round(Math.sqrt(L * 4.5));
+          const charsPerLine = Math.max(10, Math.min(45, targetChars));
+          const lines = this.wrapText(label, charsPerLine);
+          node.lines = lines;
+          
+          const maxLineLength = Math.max(...lines.map(l => l.length));
+          const paddingX = 8;
+          const paddingY = 5;
+          const lineHeight = fontSize * 1.2;
+          
+          const rawLabelWidth = maxLineLength * (fontSize * 0.55);
+          const estimatedTextWidth = Math.max(12, rawLabelWidth);
+          
+          if (lines.length === 1) {
+            const w = estimatedTextWidth + 2 * paddingX;
+            const h = fontSize + 2 * paddingY;
+            node.shape = 'capsule';
+            node.width = w;
+            node.height = h;
+            node.halfWidth = w / 2;
+            node.halfHeight = h / 2;
+            node.radius = Math.max(w / 2, h / 2);
+          } else {
+            const w = estimatedTextWidth + 2 * paddingX;
+            const h = (lines.length - 1) * lineHeight + fontSize + 2 * paddingY;
+            node.shape = 'rect';
+            node.width = w;
+            node.height = h;
+            node.halfWidth = w / 2;
+            node.halfHeight = h / 2;
+            node.radius = Math.max(w / 2, h / 2);
+          }
+        } else {
+          node.shape = 'circle';
+          node.radius = 4;
+          node.halfWidth = 4;
+          node.halfHeight = 4;
+          node.width = 8;
+          node.height = 8;
+          node.lines = undefined;
+        }
         return;
       }
 
@@ -515,8 +570,8 @@ export class BipartiteForceLayout {
       } else {
         // name-labeled
         const L = label.length;
-        const targetChars = Math.round(Math.sqrt(L * 2.18));
-        const charsPerLine = Math.max(8, Math.min(22, targetChars));
+        const targetChars = Math.round(Math.sqrt(L * 3.5));
+        const charsPerLine = Math.max(8, Math.min(30, targetChars));
         const lines = this.wrapText(label, charsPerLine);
         node.lines = lines;
         const maxLineLength = Math.max(...lines.map(l => l.length));
