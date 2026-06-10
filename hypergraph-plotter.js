@@ -626,8 +626,17 @@ export class HypergraphPlotter {
       const fontFamilyStr = this.options.labelFontFamily === 'monospace' ? 'JetBrains Mono, monospace' :
                             (this.options.labelFontFamily === 'serif' ? 'Times New Roman, serif' : 'Outfit, sans-serif');
       
-      const isDarkCanvas = this.options.canvasBg === 'dark-slate';
+      const isDarkCanvas = this.options.canvasBg === 'dark-slate' || 
+                           (this.options.canvasBg === 'custom' && this.isDarkColor(this.options.canvasBgCustom));
       const labelColor = isDarkCanvas ? '#e9ecef' : '#374151';
+
+      let canvasBgColor = '#ffffff';
+      if (this.options.canvasBg === 'light-grey') canvasBgColor = '#f8f9fa';
+      else if (this.options.canvasBg === 'dark-slate') canvasBgColor = '#1a1e24';
+      else if (this.options.canvasBg === 'custom') canvasBgColor = this.options.canvasBgCustom || '#ffffff';
+      else if (this.options.canvasBg === 'transparent') {
+        canvasBgColor = isDarkCanvas ? '#1a1e24' : '#ffffff';
+      }
 
       this.hyperedges.forEach((edge, idx) => {
         const hubNode = this.physicsLayout.nodeMap.get(`_hub_${edge.id}`);
@@ -685,7 +694,6 @@ export class HypergraphPlotter {
           tspan.setAttribute('x', String(hubNode.x));
           tspan.setAttribute('y', String(startY + lIdx * lineHeight));
           tspan.setAttribute('text-anchor', 'middle');
-          tspan.setAttribute('style', `paint-order: stroke fill; stroke: ${isDarkCanvas ? 'var(--bg-base, #1e293b)' : '#ffffff'}; stroke-width: 3px; stroke-linejoin: round;`);
           text.appendChild(tspan);
         });
 

@@ -736,8 +736,13 @@ function syncCustomizationInputs() {
   resizeNumberInput(inputEdgeWidth);
 
   // Sync toggles and select options
-  selectCanvasBg.value = opt.canvasBg;
-  inputCanvasBgCustom.value = opt.canvasBgCustom;
+  if (opt.canvasBg === 'white') {
+    selectCanvasBg.value = 'custom';
+    inputCanvasBgCustom.value = '#ffffff';
+  } else {
+    selectCanvasBg.value = opt.canvasBg;
+    inputCanvasBgCustom.value = opt.canvasBgCustom;
+  }
   selectLayout.value = opt.layoutType;
   selectTheme.value = opt.plotTheme;
   selectFontFamily.value = opt.labelFontFamily;
@@ -827,7 +832,8 @@ function initControllerEvents() {
   });
 
   inputCanvasBgCustom.addEventListener('input', (e) => {
-    plotter.setOptions({ canvasBgCustom: e.target.value });
+    selectCanvasBg.value = 'custom';
+    plotter.setOptions({ canvasBg: 'custom', canvasBgCustom: e.target.value });
   });
 
   // Layout algorithm trigger
