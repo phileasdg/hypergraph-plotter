@@ -111,6 +111,7 @@ const inputGridColor = document.getElementById('input-grid-color');
 const sliderGridOpacity = document.getElementById('slider-grid-opacity');
 const inputGridOpacity = document.getElementById('input-grid-opacity');
 const switchPinOnDrag = document.getElementById('switch-pin-on-drag');
+const btnPinOnDrag = document.getElementById('btn-pin-on-drag');
 const btnUnpinAll = document.getElementById('btn-unpin-all');
 
 const btnPhysicsPlayPause = document.getElementById('btn-physics-play-pause');
@@ -753,6 +754,9 @@ function syncCustomizationInputs() {
   inputGridOpacity.value = opt.gridOpacity;
   resizeNumberInput(inputGridOpacity);
   switchPinOnDrag.checked = opt.pinOnDrag;
+  if (btnPinOnDrag) {
+    btnPinOnDrag.classList.toggle('active', opt.pinOnDrag);
+  }
 
   // Toggle dynamic subsections visibilities
   physicsSettings.style.display = opt.layoutType === 'spring-embedding' ? 'flex' : 'none';
@@ -894,8 +898,19 @@ function initControllerEvents() {
 
   // Pinning settings
   switchPinOnDrag.addEventListener('change', (e) => {
-    plotter.setOptions({ pinOnDrag: e.target.checked });
+    const checked = e.target.checked;
+    if (btnPinOnDrag) btnPinOnDrag.classList.toggle('active', checked);
+    plotter.setOptions({ pinOnDrag: checked });
   });
+
+  if (btnPinOnDrag) {
+    btnPinOnDrag.addEventListener('click', () => {
+      const active = !plotter.options.pinOnDrag;
+      btnPinOnDrag.classList.toggle('active', active);
+      if (switchPinOnDrag) switchPinOnDrag.checked = active;
+      plotter.setOptions({ pinOnDrag: active });
+    });
+  }
 
   btnUnpinAll.addEventListener('click', () => {
     plotter.pinnedNodeIds.clear();
@@ -918,7 +933,6 @@ function initControllerEvents() {
   // Action Buttons
   btnPhysicsPlayPause.addEventListener('click', () => {
     const isPlaying = !plotter.options.physicsPlaying;
-    btnPhysicsPlayPause.textContent = isPlaying ? '⏸' : '▶';
     btnPhysicsPlayPause.className = isPlaying ? 'active' : '';
     plotter.setOptions({ physicsPlaying: isPlaying });
   });

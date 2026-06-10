@@ -498,6 +498,16 @@ input:checked + .slider-round:before {
   transform: translateY(-1px);
 }
 
+/* Play/Pause SVG icon visibility toggle */
+#btn-physics-play-pause.active .icon-play,
+#btn-physics-play-pause:not(.active) .icon-pause {
+  display: none;
+}
+#btn-physics-play-pause.active .icon-pause,
+#btn-physics-play-pause:not(.active) .icon-play {
+  display: block;
+}
+
 .floating-help {
   position: absolute;
   bottom: 20px;
