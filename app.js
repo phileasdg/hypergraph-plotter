@@ -836,7 +836,7 @@ function initControllerEvents() {
   selectCanvasBg.addEventListener('change', (e) => {
     const val = e.target.value;
     let customVal = plotter.options.canvasBgCustom;
-    if (val === 'white') customVal = '#ffffff';
+    if (val === 'transparent') customVal = '#ffffff';
     else if (val === 'light-grey') customVal = '#f8f9fa';
     else if (val === 'dark-slate') customVal = '#1a1e24';
     
@@ -870,7 +870,15 @@ function initControllerEvents() {
   selectVertexFill.addEventListener('change', (e) => {
     const val = e.target.value;
     vertexFillCustomWrapper.style.display = val === 'custom' ? 'inline-flex' : 'none';
-    plotter.setOptions({ nodeFillType: val });
+    
+    let fillVal = plotter.options.nodeFillCustom;
+    if (val === 'automatic') {
+      const isDark = plotter.options.canvasBg === 'dark-slate' || 
+                    (plotter.options.canvasBg === 'custom' && plotter.isDarkColor(plotter.options.canvasBgCustom));
+      fillVal = isDark ? '#1e293b' : '#ffffff';
+    }
+    inputVertexFillCustom.value = fillVal;
+    plotter.setOptions({ nodeFillType: val, nodeFillCustom: fillVal });
   });
 
   inputVertexFillCustom.addEventListener('input', (e) => {
