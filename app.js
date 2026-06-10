@@ -392,9 +392,22 @@ function updateHyperedgesList() {
   });
 
   document.querySelectorAll('.edge-color-picker').forEach(picker => {
+    const id = picker.getAttribute('data-edge-color-id');
+    const pill = picker.previousElementSibling || (picker.parentElement ? picker.parentElement.querySelector('.item-color-pill') : null);
+
+    picker.addEventListener('input', (e) => {
+      const edge = plotter.hyperedges.find(el => String(el.id) === String(id));
+      if (edge) {
+        edge.color = e.target.value;
+        if (pill) {
+          pill.style.backgroundColor = e.target.value;
+        }
+        plotter.draw();
+      }
+    });
+
     picker.addEventListener('change', (e) => {
-      const id = picker.getAttribute('data-edge-color-id');
-      const edge = plotter.hyperedges.find(e => String(e.id) === String(id));
+      const edge = plotter.hyperedges.find(el => String(el.id) === String(id));
       if (edge) {
         edge.color = e.target.value;
         updateHyperedgesList();
