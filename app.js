@@ -110,7 +110,6 @@ const gridCustomControls = document.getElementById('grid-custom-controls');
 const inputGridColor = document.getElementById('input-grid-color');
 const sliderGridOpacity = document.getElementById('slider-grid-opacity');
 const inputGridOpacity = document.getElementById('input-grid-opacity');
-const switchPinOnDrag = document.getElementById('switch-pin-on-drag');
 const btnPinOnDrag = document.getElementById('btn-pin-on-drag');
 const btnUnpinAll = document.getElementById('btn-unpin-all');
 
@@ -753,7 +752,6 @@ function syncCustomizationInputs() {
   sliderGridOpacity.value = opt.gridOpacity;
   inputGridOpacity.value = opt.gridOpacity;
   resizeNumberInput(inputGridOpacity);
-  switchPinOnDrag.checked = opt.pinOnDrag;
   if (btnPinOnDrag) {
     btnPinOnDrag.classList.toggle('active', opt.pinOnDrag);
   }
@@ -897,17 +895,10 @@ function initControllerEvents() {
   });
 
   // Pinning settings
-  switchPinOnDrag.addEventListener('change', (e) => {
-    const checked = e.target.checked;
-    if (btnPinOnDrag) btnPinOnDrag.classList.toggle('active', checked);
-    plotter.setOptions({ pinOnDrag: checked });
-  });
-
   if (btnPinOnDrag) {
     btnPinOnDrag.addEventListener('click', () => {
       const active = !plotter.options.pinOnDrag;
       btnPinOnDrag.classList.toggle('active', active);
-      if (switchPinOnDrag) switchPinOnDrag.checked = active;
       plotter.setOptions({ pinOnDrag: active });
     });
   }
